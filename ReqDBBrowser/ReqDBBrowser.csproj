@@ -89,9 +89,23 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <Compile Include="ReqProProject.cs" />
+    <Compile Include="ReqTreeNode.cs" />
+    <Compile Include="TreePanel.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="ClassDiagram1.cd" />
     <None Include="ResourceFiles\refresh.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <COMReference Include="ReqPro40">
+      <Guid>{A4C93374-B3C3-4EEF-8599-0CE6FFD01762}</Guid>
+      <VersionMajor>1</VersionMajor>
+      <VersionMinor>11</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>tlbimp</WrapperTool>
+      <Isolated>False</Isolated>
+    </COMReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

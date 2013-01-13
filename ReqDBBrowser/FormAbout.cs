@@ -8,9 +8,9 @@ using System.Windows.Forms;
 
 namespace ReqDBBrowser
 {
-    public partial class formAbout : Form
+    public partial class FormAbout : Form
     {
-        public formAbout()
+        public FormAbout()
         {
             InitializeComponent();
         }

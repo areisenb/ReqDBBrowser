@@ -1,6 +1,6 @@
 namespace ReqDBBrowser
 {
-    partial class formMain
+    partial class FormMain
     {
         /// <summary>
         /// Required designer variable.
@@ -28,7 +28,7 @@ namespace ReqDBBrowser
         /// </summary>
         private void InitializeComponent()
         {
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(formMain));
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FormMain));
             this.menuStripMain = new System.Windows.Forms.MenuStrip();
             this.projectToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.openToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -39,8 +39,8 @@ namespace ReqDBBrowser
             this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMain = new System.Windows.Forms.ToolStrip();
-            this.toolStripButtonRefresh = new System.Windows.Forms.ToolStripButton();
             this.splitContainerMain = new System.Windows.Forms.SplitContainer();
+            this.toolStripButtonRefresh = new System.Windows.Forms.ToolStripButton();
             this.menuStripMain.SuspendLayout();
             this.toolStripMain.SuspendLayout();
             this.splitContainerMain.SuspendLayout();
@@ -125,6 +125,15 @@ namespace ReqDBBrowser
             this.toolStripMain.TabIndex = 1;
             this.toolStripMain.Text = "toolStripMain";
             // 
+            // splitContainerMain
+            // 
+            this.splitContainerMain.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.splitContainerMain.Location = new System.Drawing.Point(0, 49);
+            this.splitContainerMain.Name = "splitContainerMain";
+            this.splitContainerMain.Size = new System.Drawing.Size(889, 429);
+            this.splitContainerMain.SplitterDistance = 245;
+            this.splitContainerMain.TabIndex = 2;
+            // 
             // toolStripButtonRefresh
             // 
             this.toolStripButtonRefresh.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
@@ -134,15 +143,6 @@ namespace ReqDBBrowser
             this.toolStripButtonRefresh.Size = new System.Drawing.Size(23, 22);
             this.toolStripButtonRefresh.Text = "toolStripButtonRefresh";
             this.toolStripButtonRefresh.ToolTipText = "Refresh";
-            // 
-            // splitContainerMain
-            // 
-            this.splitContainerMain.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.splitContainerMain.Location = new System.Drawing.Point(0, 49);
-            this.splitContainerMain.Name = "splitContainerMain";
-            this.splitContainerMain.Size = new System.Drawing.Size(889, 429);
-            this.splitContainerMain.SplitterDistance = 245;
-            this.splitContainerMain.TabIndex = 2;
             // 
             // formMain
             // 
@@ -156,6 +156,7 @@ namespace ReqDBBrowser
             this.MainMenuStrip = this.menuStripMain;
             this.Name = "formMain";
             this.Text = "ReqDBBrowser";
+            this.Load += new System.EventHandler(this.formMain_Load);
             this.menuStripMain.ResumeLayout(false);
             this.menuStripMain.PerformLayout();
             this.toolStripMain.ResumeLayout(false);

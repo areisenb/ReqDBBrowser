@@ -1,6 +1,6 @@
 namespace ReqDBBrowser
 {
-    partial class formAbout
+    partial class FormAbout
     {
         /// <summary>
         /// Required designer variable.
@@ -28,7 +28,7 @@ namespace ReqDBBrowser
         /// </summary>
         private void InitializeComponent()
         {
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(formAbout));
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FormAbout));
             this.labelName = new System.Windows.Forms.Label();
             this.labelVersion = new System.Windows.Forms.Label();
             this.buttonOK = new System.Windows.Forms.Button();

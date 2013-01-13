@@ -10,7 +10,7 @@ namespace ReqDBBrowser
 {
     public partial class FormOpenProject : Form
     {
-        public FormOpenProject(string strProjectFile, string strUser, string strPassword)
+        public FormOpenProject(string strProjectFile, string strUser)
         {
             InitializeComponent();
         }
