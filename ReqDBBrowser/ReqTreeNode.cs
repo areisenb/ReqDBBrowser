@@ -8,10 +8,12 @@ namespace ReqDBBrowser
     {
         private System.Collections.ArrayList aReqTreeNodeChilds;
         private string strText;
+        private int nKey;
 
-        public ReqTreeNode (string strText)
+        public ReqTreeNode (string strText, int nKey)
         {
             this.strText = strText;
+            this.nKey = nKey;
             aReqTreeNodeChilds = new System.Collections.ArrayList ();
         }
 
@@ -28,6 +30,11 @@ namespace ReqDBBrowser
         public int Count
         {
             get { return aReqTreeNodeChilds.Count; }
+        }
+
+        public int Key
+        {
+            get { return this.nKey; }
         }
 
         public ReqTreeNode this [int idx]

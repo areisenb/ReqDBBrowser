@@ -7,9 +7,9 @@ namespace ReqDBBrowser
 {
     class TreePanel
     {
-        TreeView treeView;
+        TreeViewReq treeView;
 
-        public TreePanel(ref TreeView treeView)
+        public TreePanel(ref TreeViewReq treeView)
         {
             this.treeView = treeView;
         }
@@ -18,6 +18,7 @@ namespace ReqDBBrowser
         {
             int i;
             TreeNode tn = new TreeNode (reqTreeNode.Text);
+            tn.Tag = reqTreeNode.Key;
 
             treeView.Nodes.Add(tn);
             for (i = 0; i < reqTreeNode.Count; i++ )
@@ -31,6 +32,7 @@ namespace ReqDBBrowser
             int i;
             TreeNode tn;
             tn = new TreeNode(reqTreeNode.Text);
+            tn.Tag = reqTreeNode.Key;
             tnParent.Nodes.Add(tn);
 
             for (i = 0; i < reqTreeNode.Count; i++)

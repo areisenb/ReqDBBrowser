@@ -75,6 +75,10 @@
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
     </EmbeddedResource>
+    <EmbeddedResource Include="TreeViewReq.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>TreeViewReq.cs</DependentUpon>
+    </EmbeddedResource>
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
@@ -90,11 +94,17 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
     <Compile Include="ReqProProject.cs" />
+    <Compile Include="ReqProRequirementPrx.cs" />
     <Compile Include="ReqTreeNode.cs" />
+    <Compile Include="ReqUIBox.cs" />
     <Compile Include="TreePanel.cs" />
+    <Compile Include="TreeViewReq.cs">
+      <SubType>Component</SubType>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <None Include="ClassDiagram1.cd" />
+    <None Include="ClassDiagram2.cd" />
     <None Include="ResourceFiles\refresh.png" />
   </ItemGroup>
   <ItemGroup>
