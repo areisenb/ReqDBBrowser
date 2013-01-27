@@ -14,6 +14,16 @@ namespace ReqDBBrowser
 
         static string strHomePrjPrefix;
 
+        public enum eTraceAbortReason
+        {
+            eNoAbort,
+            eInvalidRequirement =   0x0001, 
+            eTooManyTracesFrom =    0x0002,
+            eTooManyTracesTo =      0x0004,
+            eMaxFromLevelReached =  0x0008,
+            eMaxToLevelReached =    0x0010
+        }
+
         ReqPro40.Requirement rpxReq;
         int nKey;
         ReqPro40.Project rpxProject;
@@ -61,6 +71,17 @@ namespace ReqDBBrowser
                     strPrefix = rpxProject.Prefix;
         }
 
+        public ReqProRequirementPrx(ReqProRequirementPrx reqProReqPrx)
+        {
+            this.nKey = reqProReqPrx.nKey;
+            this.rpxProject = reqProReqPrx.rpxProject;
+            this.rpxReq = reqProReqPrx.rpxReq;
+            this.strName = reqProReqPrx.strName;
+            this.strPrefix = reqProReqPrx.strPrefix;
+            this.strTag = reqProReqPrx.strTag;
+            this.strText = reqProReqPrx.strText;
+        }
+
         public string Tag
         { get 
             {
@@ -88,12 +109,14 @@ namespace ReqDBBrowser
             
 
 
-        public ReqProRequirementPrx[] GetRequirementTraces(ReqPro40.Relationships rpxRelations, int nMaxCount)
+        public ReqProRequirementPrx[] GetRequirementTraces
+            (ReqPro40.Relationships rpxRelations, int nMaxTraceCount, out int nTraceCount)
         {
             int nCount = rpxRelations.Count;
-            if (nCount > nMaxCount)
+            if (nCount > nMaxTraceCount)
                 nCount = 0;
 
+            nTraceCount = nCount;
             ReqProRequirementPrx[] aReqPrx = new ReqProRequirementPrx[nCount];
             rpxRelations.MoveFirst();
             for (int i = 0; i < nCount; i++)
@@ -122,17 +145,31 @@ namespace ReqDBBrowser
             return aReqPrx;
         }
 
-        public ReqProRequirementPrx[] GetRequirementTracesFrom(int nMaxTraces)
+        public ReqProRequirementPrx[] GetRequirementTracesFrom(int nMaxTraceCount, ref eTraceAbortReason eAbort, out int nTraceCount)
         {
             if (rpxReq != null)
-                return GetRequirementTraces(rpxReq.TracesFrom, nMaxTraces);
+            {
+                eTraceAbortReason eLocAbort = eTraceAbortReason.eNoAbort;
+                ReqProRequirementPrx[] aReqPrx = GetRequirementTraces(rpxReq.TracesFrom, nMaxTraceCount, out nTraceCount);
+                if ((nTraceCount > 0) && (aReqPrx.GetLength(0) == 0))
+                    eAbort = eAbort | eTraceAbortReason.eTooManyTracesFrom;
+                return aReqPrx;
+            }
+            nTraceCount = 0;
             return new ReqProRequirementPrx[0];
         }
 
-        public ReqProRequirementPrx[] GetRequirementTracesTo(int nMaxTraces)
+        public ReqProRequirementPrx[] GetRequirementTracesTo(int nMaxTraceCount, ref eTraceAbortReason eAbort, out int nTraceCount)
         {
             if (rpxReq != null)
-                return GetRequirementTraces(rpxReq.TracesTo, nMaxTraces);
+            {
+                eTraceAbortReason eLocAbort = eTraceAbortReason.eNoAbort;
+                ReqProRequirementPrx[] aReqPrx = GetRequirementTraces(rpxReq.TracesTo, nMaxTraceCount, out nTraceCount);
+                if ((nTraceCount > 0) && (aReqPrx.GetLength(0) == 0))
+                    eAbort = eAbort | eTraceAbortReason.eTooManyTracesTo;
+                return aReqPrx;
+            }
+            nTraceCount = 0;
             return new ReqProRequirementPrx[0];
         }
 

@@ -14,13 +14,9 @@ namespace ReqDBBrowser
         TreePanel treePanel;
         TreeViewReq treeView;
         ReqProProject reqDBBrowser;
-        ReqUIBox reqCurrentUIBox;
 
-        TextBox textBReq;
         DataGridView dataGridReq;
-
-        ArrayList arrListReqKey;
-
+        ReqTraceGrid reqTraceGrid;
 
         public FormMain()
         {
@@ -88,29 +84,22 @@ namespace ReqDBBrowser
 
         public void NodeSelectedCallback(int nKey, bool doubleClick, MouseButtons mButton)
         {
-            string strText;
             ReqProRequirementPrx reqReqPrx;
 
             reqReqPrx = reqDBBrowser.GetRequirementPrx(nKey);
 
-            this.reqCurrentUIBox = new ReqUIBox
-                (nKey, reqReqPrx.Name, reqReqPrx.Text, new Point(0, 0), DefaultFont);
-
-            if (textBReq != null)
-                tabPageTree.Controls.Remove(textBReq);
-
-            textBReq = new TextBox();
-            textBReq.Location = new Point(0, 150);
-            textBReq.Size = new Size(200, 100);
-            textBReq.Multiline = true;
-            textBReq.Text = reqReqPrx.Name + "\n" + reqReqPrx.Text;
-            textBReq.ReadOnly = true;
-            tabPageTree.Controls.Add (textBReq);
-
+            FillReqTraceGrid(reqReqPrx, 2, 2, 15, 3, 3);
             PrepareDataGrid();
-            PopulateDataGrid(reqReqPrx, 2, 2, 15);
+            PopulateDataGrid(2, 2);
+            PopulateGraph(2, 2);
 
+        }
 
+        void FillReqTraceGrid(ReqProRequirementPrx reqReqPrx,
+            int nUpCount, int nDownCount, int nMaxTraces, int nMaxUpCount, int nMaxDownCount)
+        {
+            reqTraceGrid = new ReqTraceGrid(nUpCount, nDownCount, nMaxTraces, nMaxUpCount, nMaxDownCount);
+            reqTraceGrid.AddReq(reqReqPrx);
         }
 
         void PrepareDataGrid()
@@ -150,84 +139,70 @@ namespace ReqDBBrowser
             DataGridViewRow row = dataGridReq.RowTemplate;
             row.Height = dataGridReq.Font.Height * 11/2;
 
-            arrListReqKey = new ArrayList();
         }
 
-        void PopulateDataGrid(ReqProRequirementPrx reqReqPrx, int nUpCount, int nDownCount, int nMaxTraces)
+        void PopulateDataGrid(int nUpCount, int nDownCount)
         {
-            ReqProRequirementPrx[] aTracesTo;
-            ReqProRequirementPrx[] aTracesFrom;
             string[] astrReq;
+            ReqTraceGrid.ReqTraceNode reqTraceNode;
 
-            aTracesTo = reqReqPrx.GetRequirementTracesTo(nMaxTraces);
-            aTracesFrom = reqReqPrx.GetRequirementTracesFrom(nMaxTraces);
-
-            astrReq = new string[] 
+            for (int i = nUpCount; i >= -nDownCount; i--)
+                for (int j = 0; j < reqTraceGrid.GetElementCount (i); j++)
                 {
-                    reqReqPrx.TagName,
-                    reqReqPrx.Text,
-                    FormatTrace(aTracesTo), 
-                    FormatTrace (aTracesFrom)
-                };
-
-            arrListReqKey.Add(reqReqPrx.Key);
-
-            dataGridReq.Rows.Add(astrReq);
-
-            if ((aTracesFrom.GetLength(0) > 0) && (nUpCount >= 0))
-            {
-                --nUpCount;
-                foreach (ReqProRequirementPrx reqReqPrxFrom in aTracesFrom)
-                {
-                    if (!arrListReqKey.Contains(reqReqPrxFrom.Key))
-                        PopulateDataGrid(reqReqPrxFrom, nUpCount, nDownCount, nMaxTraces);
-                    /*
-                    astrReq = new string[] 
-                        {
-                            reqReqPrxFrom.TagName, 
-                            reqReqPrxFrom.Text,
-                            "", ""
-                        };
-                    dataGridReq.Rows.Add(astrReq);*/
+                    reqTraceNode = reqTraceGrid[i, j];
+                    if (reqTraceNode != null)
+                    {
+                        astrReq = new string[] 
+                            {
+                                reqTraceNode.TagName,
+                                reqTraceNode.Text,
+                                reqTraceNode.GetTraceToString (),
+                                reqTraceNode.GetTraceFromString()
+                            };
+                        dataGridReq.Rows.Add(astrReq);
+                    }
                 }
-            }
-
-            if ((aTracesTo.GetLength(0) > 0) && (nDownCount >= 0))
-            {
-                --nDownCount;
-                foreach (ReqProRequirementPrx reqReqPrxTo in aTracesTo)
-                {
-                    if (!arrListReqKey.Contains(reqReqPrxTo.Key))
-                        PopulateDataGrid(reqReqPrxTo, nUpCount, nDownCount, nMaxTraces);
-                    /*
-                    astrReq = new string[] 
-                        {
-                            reqReqPrxTo.TagName, 
-                            reqReqPrxTo.Text,
-                            "", ""
-                        };
-                    dataGridReq.Rows.Add(astrReq);*/
-                }
-            }
-
         }
 
-        string FormatTrace(ReqProRequirementPrx[] anKeys)
+        void PopulateGraph(int nUpCount, int nDownCount)
         {
-            string strRet = "";
-            foreach (ReqProRequirementPrx reqReqPrx in anKeys)
-            {
-                strRet += reqReqPrx.Tag+"\n";
-            }
-            return strRet;
+            ReqTraceGrid.ReqTraceNode reqTraceNode;
+            TextBox textBReq;
+            int j = 0;
+            Size sizeText;
+            Size sizeTagName;
+            int [] nTraceToX;
+            int [] nTraceToY;
+
+            sizeText = new Size(200, 100);
+            sizeTagName = new Size(200, 20);
+
+            tabPageTree.Controls.Clear();
+
+            for (int i = nUpCount; i >= -nDownCount; i--, j++)
+                for (int k = 0; k < reqTraceGrid.GetElementCount(i); k++)
+                {
+                    reqTraceNode = reqTraceGrid[i, k];
+                    if (reqTraceNode != null)
+                    {
+                        textBReq = new TextBox();
+                        textBReq.Location = new Point(k * 250, j * 150);
+                        textBReq.Size = sizeTagName;
+                        textBReq.Multiline = true;
+                        textBReq.ReadOnly = true;
+                        textBReq.Text = reqTraceNode.TagName;
+                        tabPageTree.Controls.Add(textBReq);
+
+                        textBReq = new TextBox();
+                        textBReq.Location = new Point(k * 250, j * 150 + sizeTagName.Height);
+                        textBReq.Size = sizeText;
+                        textBReq.Multiline = true;
+                        textBReq.ReadOnly = true;
+                        textBReq.Text = reqTraceNode.Text;
+                        tabPageTree.Controls.Add(textBReq);
+                        reqTraceNode.GetTraceToCoord (out nTraceToX, out nTraceToY);
+                    }
+                }
         }
-
-
-        /* private void tabPageTree_Paint(object sender, PaintEventArgs e)
-        {
-            Graphics graphics = e.Graphics;
-            reqCurrentUIBox.Paint(e.Graphics);
-            graphics.Dispose();
-        }*/
     }
 }

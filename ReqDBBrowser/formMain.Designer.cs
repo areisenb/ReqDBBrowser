@@ -176,6 +176,7 @@ namespace ReqDBBrowser
             // 
             // tabPageTree
             // 
+            this.tabPageTree.AutoScroll = true;
             this.tabPageTree.Location = new System.Drawing.Point(4, 22);
             this.tabPageTree.Name = "tabPageTree";
             this.tabPageTree.Padding = new System.Windows.Forms.Padding(3);
@@ -183,7 +184,6 @@ namespace ReqDBBrowser
             this.tabPageTree.TabIndex = 1;
             this.tabPageTree.Text = "Tree";
             this.tabPageTree.UseVisualStyleBackColor = true;
-            //this.tabPageTree.Paint += new System.Windows.Forms.PaintEventHandler(this.tabPageTree_Paint);
             // 
             // FormMain
             // 
