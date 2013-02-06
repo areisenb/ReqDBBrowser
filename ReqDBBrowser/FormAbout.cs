@@ -14,5 +14,11 @@ namespace ReqDBBrowser
         {
             InitializeComponent();
         }
+
+        private void FormAbout_Load(object sender, EventArgs e)
+        {
+            string strVersion = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
+            labelVersion.Text = "Version: " + strVersion;
+        }
     }
 }

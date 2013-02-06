@@ -9,19 +9,21 @@ using System.Collections;
 
 namespace ReqDBBrowser
 {
-    public partial class FormMain : Form
+    public partial class FormMain : Form, TreeViewReq.ITreeViewReqCb
     {
-        TreePanel treePanel;
-        TreeViewReq treeView;
+        TreeViewReq treeViewRq;
         ReqProProject reqDBBrowser;
 
         DataGridView dataGridReq;
         ReqTraceGrid reqTraceGrid;
+        ArrayList arrTraceDwg;
+        int oldTabPageTableWidth;
 
         public FormMain()
         {
             InitializeComponent();
             reqDBBrowser = new ReqProProject();
+            arrTraceDwg = new ArrayList();
         }
 
         private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
@@ -52,24 +54,51 @@ namespace ReqDBBrowser
                 strName);
             if (fmOpenProject.ShowDialog() == DialogResult.OK)
             {
-                int nPackageCount;
-                reqDBBrowser.OpenProject(fmOpenProject.strProjectFile,
+                string strErrDiag;
+                Cursor = Cursors.WaitCursor;
+                if (reqDBBrowser.OpenProject(fmOpenProject.strProjectFile,
                     fmOpenProject.strUser,
                     fmOpenProject.strPassword,
-                    new ReqProProject.RequestCredentialsCallback (this.RequestCredentialsCallback),
-                    new ReqProProject.ShowOpenReleatedProjectErrorCallback (this.ShowOpenReleatedProjectErrorCallback));
-                treePanel.CreateTree(reqDBBrowser.ReadReqTree(out nPackageCount));
+                    new ReqProProject.RequestCredentialsCallback(this.RequestCredentialsCallback),
+                    new ReqProProject.ShowOpenReleatedProjectErrorCallback(this.ShowOpenReleatedProjectErrorCallback),
+                    out strErrDiag))
+                    CreateReqTree ();
+                else
+                    MessageBox.Show(strErrDiag, "Error Open Project", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Cursor = Cursors.Default;
             }
+        }
+
+        private void CreateReqTree()
+        {
+            int nPackageCount;
+            FormProgressReqTree formProgressReqTree = new FormProgressReqTree();
+
+            formProgressReqTree.Show();
+            treeViewRq.CreateTree(reqDBBrowser.ReadReqTree(out nPackageCount, formProgressReqTree.ShowProgressReqTree));
+        }
+
+        private void closeToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Cursor = Cursors.WaitCursor;
+            reqDBBrowser.CloseProject();
+            CleanupViews();
+            Cursor = Cursors.Default;
+        }
+
+        public void CleanupViews()
+        {
+            if (treeViewRq != null)
+                splitContainerMain.Panel1.Controls.Remove(treeViewRq);
+            treeViewRq = new TreeViewReq(this as TreeViewReq.ITreeViewReqCb, imageListReqTree);
+            treeViewRq.Dock = DockStyle.Fill;
+            splitContainerMain.Panel1.Controls.Add(treeViewRq);
+            //this.ResizeRedraw = true; 
         }
 
         private void formMain_Load(object sender, EventArgs e)
         {
-            TreeViewReq.NodeSelectedCallback nodeSelectedCallback = new TreeViewReq.NodeSelectedCallback(this.NodeSelectedCallback);
-
-            treeView = new TreeViewReq(nodeSelectedCallback);
-            treeView.Dock = DockStyle.Fill;
-            treePanel = new TreePanel(ref treeView);
-            splitContainerMain.Panel1.Controls.Add(treeView);
+            CleanupViews();
         }
 
         public bool RequestCredentialsCallback(string strProjectDesc, ref string strUser, out string strPassword)
@@ -82,24 +111,39 @@ namespace ReqDBBrowser
         {
         }
 
-        public void NodeSelectedCallback(int nKey, bool doubleClick, MouseButtons mButton)
+        public void DoRequirementTraces(ArrayList arrKeys)
         {
             ReqProRequirementPrx reqReqPrx;
+            ArrayList arrReqPrx = new ArrayList();
 
-            reqReqPrx = reqDBBrowser.GetRequirementPrx(nKey);
+            Cursor = Cursors.WaitCursor;
+            Invalidate();
+            this.tabPageTree.Invalidate();
+            foreach (int nKey in arrKeys)
+            {
+                reqReqPrx = reqDBBrowser.GetRequirementPrx(nKey);
+                arrReqPrx.Add (reqReqPrx);
+            }
 
-            FillReqTraceGrid(reqReqPrx, 2, 2, 15, 3, 3);
+            Cursor = Cursors.Default;
+            FillReqTraceGrid(arrReqPrx, 2, 2, 15, 3, 3);
+            Cursor = Cursors.WaitCursor;
             PrepareDataGrid();
             PopulateDataGrid(2, 2);
             PopulateGraph(2, 2);
-
+            Cursor = Cursors.Default;
         }
 
-        void FillReqTraceGrid(ReqProRequirementPrx reqReqPrx,
+        void FillReqTraceGrid(ArrayList arrReqPrx,
             int nUpCount, int nDownCount, int nMaxTraces, int nMaxUpCount, int nMaxDownCount)
         {
-            reqTraceGrid = new ReqTraceGrid(nUpCount, nDownCount, nMaxTraces, nMaxUpCount, nMaxDownCount);
-            reqTraceGrid.AddReq(reqReqPrx);
+            FormProgressReqTraceGrid formProgressTraceGrid;
+            formProgressTraceGrid = new FormProgressReqTraceGrid();
+            formProgressTraceGrid.Show();
+
+            reqTraceGrid = new ReqTraceGrid(nUpCount, nDownCount, nMaxTraces, 
+                nMaxUpCount, nMaxDownCount, formProgressTraceGrid.ShowProgressReqTraceGrid);
+            reqTraceGrid.AddReq(arrReqPrx);
         }
 
         void PrepareDataGrid()
@@ -121,14 +165,20 @@ namespace ReqDBBrowser
             dataGridReq.AllowUserToAddRows = false;
             dataGridReq.AllowUserToDeleteRows = false;
 
+            int nWidth = tabPageTable.Size.Width - dataGridReq.RowHeadersWidth;
+
             dataGridReq.Columns[0].Name = "Name";
             dataGridReq.Columns[0].DefaultCellStyle.WrapMode = DataGridViewTriState.True;
+            dataGridReq.Columns[0].Width = nWidth / 10;
             dataGridReq.Columns[1].Name = "Text";
             dataGridReq.Columns[1].DefaultCellStyle.WrapMode = DataGridViewTriState.True;
+            dataGridReq.Columns[1].Width = nWidth / 2;
             dataGridReq.Columns[2].Name = "Trace to";
             dataGridReq.Columns[2].DefaultCellStyle.WrapMode = DataGridViewTriState.True;
+            dataGridReq.Columns[2].Width = nWidth / 5;
             dataGridReq.Columns[3].Name = "Trace from";
             dataGridReq.Columns[3].DefaultCellStyle.WrapMode = DataGridViewTriState.True;
+            dataGridReq.Columns[3].Width = nWidth / 5;
 
             if (dataGridOld != null)
             {
@@ -176,8 +226,12 @@ namespace ReqDBBrowser
 
             sizeText = new Size(200, 100);
             sizeTagName = new Size(200, 20);
+            const int nXSpacing = 250;
+            const int nYSpacing = 200;
 
             tabPageTree.Controls.Clear();
+            arrTraceDwg.Clear();
+
 
             for (int i = nUpCount; i >= -nDownCount; i--, j++)
                 for (int k = 0; k < reqTraceGrid.GetElementCount(i); k++)
@@ -186,7 +240,7 @@ namespace ReqDBBrowser
                     if (reqTraceNode != null)
                     {
                         textBReq = new TextBox();
-                        textBReq.Location = new Point(k * 250, j * 150);
+                        textBReq.Location = new Point(k * nXSpacing, j * nYSpacing);
                         textBReq.Size = sizeTagName;
                         textBReq.Multiline = true;
                         textBReq.ReadOnly = true;
@@ -194,15 +248,140 @@ namespace ReqDBBrowser
                         tabPageTree.Controls.Add(textBReq);
 
                         textBReq = new TextBox();
-                        textBReq.Location = new Point(k * 250, j * 150 + sizeTagName.Height);
+                        textBReq.Location = new Point(k * nXSpacing, j * nYSpacing + sizeTagName.Height);
                         textBReq.Size = sizeText;
                         textBReq.Multiline = true;
                         textBReq.ReadOnly = true;
                         textBReq.Text = reqTraceNode.Text;
                         tabPageTree.Controls.Add(textBReq);
                         reqTraceNode.GetTraceToCoord (out nTraceToX, out nTraceToY);
+                        for (int l = nTraceToX.GetLength(0)-1; l >= 0; l--)
+                            if ((nTraceToX[l] != int.MinValue) && (reqTraceNode.X != int.MinValue))
+                                arrTraceDwg.Add (new ReqTraceUI (
+                                    reqTraceNode.X * nXSpacing + sizeText.Width / 2,
+                                    (nUpCount - reqTraceNode.Y) * nYSpacing + sizeTagName.Height + sizeText.Height,
+                                    nTraceToX[l] * nXSpacing + sizeText.Width / 2,
+                                    (nUpCount - nTraceToY[l]) * nYSpacing));
                     }
                 }
+        }
+
+        private void tabPageTree_Paint(object sender, PaintEventArgs e)
+        {
+            if (arrTraceDwg != null)
+                foreach (ReqTraceUI reqTrace in arrTraceDwg)
+                {
+                    reqTrace.Draw(e.Graphics, tabPageTree.AutoScrollPosition);
+                }
+        }
+
+        private void tabPageTree_ClientSizeChanged(object sender, EventArgs e)
+        {
+            this.Invalidate();
+        }
+
+        private void tabPageTree_Scroll(object sender, ScrollEventArgs e)
+        {
+            this.Invalidate();
+            this.tabPageTree.Invalidate();
+        }
+
+        private void toolStripButtonRefresh_Click(object sender, EventArgs e)
+        {
+            Cursor = Cursors.WaitCursor;
+            CleanupViews();
+            Cursor = Cursors.Default;
+            CreateReqTree();
+        }
+
+        private void tabDetails_SizeChanged(object sender, EventArgs e)
+        {
+            if (dataGridReq != null)
+            {
+                int nInc = tabPageTable.Size.Width - dataGridReq.RowHeadersWidth - oldTabPageTableWidth;
+                if (nInc > 0)
+                {
+                    int nOldWidth = 0;
+                    for (int i=0; i<dataGridReq.Columns.Count; i++)
+                        nOldWidth += dataGridReq.Columns[i].Width;
+                    if (nOldWidth < oldTabPageTableWidth)
+                    {
+                        dataGridReq.Columns[1].Width += nInc / 2;
+                        dataGridReq.Columns[0].Width += nInc / 10;
+                        dataGridReq.Columns[2].Width += nInc / 5;
+                        dataGridReq.Columns[3].Width += nInc / 5;
+                    }
+                }
+                oldTabPageTableWidth = tabPageTable.Size.Width - dataGridReq.RowHeadersWidth;
+            }
+        }
+
+        /* from TreeViewReq.ITreeViewReqCb */
+        public void GetReqCtxMenu(out string[] astrMnuEntry)
+        {
+            astrMnuEntry = new string[] {
+                "Requirement Traces",
+                "View Log",
+                "View Details"
+            };
+        }
+
+        public void GetPkgCtxMenu(out string[] astrMnuEntry)
+        {
+            astrMnuEntry = new string[] {
+                "Requirement Traces",
+                "View Log",
+                "View Requirements"
+            };
+        }
+
+        public void ReqMenuAction(int nKey, int nMenuItem, string strMenuText)
+        {
+            switch (nMenuItem)
+            {
+                case 0:
+                    {
+                        ArrayList arrReq = new ArrayList();
+                        arrReq.Add(nKey);
+                        DoRequirementTraces(arrReq);
+                    }
+                    break;
+                case 1:
+                    {
+                        int nCount;
+                        ReqPro40.Requirement rpxReq = reqDBBrowser.GetRequirement(nKey);
+                        ReqPro40.Revision rpxRev;
+
+                        nCount = rpxReq.Revisions.Count;
+                        for (int i=0; i<nCount; i++) 
+                        {
+                            rpxRev = rpxReq.Revisions[i+1, ReqPro40.enumRevisionLookups.eRevLookup_Index];
+                            System.Diagnostics.Trace.WriteLine(rpxReq.get_Tag(ReqPro40.enumTagFormat.eTagFormat_Tag) + 
+                                " Rev.: " + rpxRev.VersionNumber +
+                                " Date: " + rpxRev.VersionDateTime +
+                                " User: " + rpxRev.VersionUser.FullName +
+                                " Change: " + rpxRev.VersionReason);
+                        }
+                    }
+                    break;
+                default:
+                    MessageBox.Show("Requirement " + strMenuText + " not yet implemented");
+                    break;
+            }
+        }
+
+        public void PkgMenuAction(ArrayList arrReqKeys, ArrayList arrOtherKeys,
+            int nMenuItem, string strMenuText)
+        {
+            switch (nMenuItem)
+            {
+                case 0:
+                    DoRequirementTraces(arrReqKeys);
+                    break;
+                default:
+                    MessageBox.Show("Package " + strMenuText + " not yet implemented");
+                    break;
+            }
         }
     }
 }

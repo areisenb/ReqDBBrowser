@@ -130,7 +130,6 @@ namespace ReqDBBrowser
                     }
                     else
                     {
-                        int n;
                         aReqPrx[i] = new ReqProRequirementPrx
                             (rpxRelations.ItemCurrent.SourceProject, rpxRelations.ItemCurrent.SourceKey);
                     }

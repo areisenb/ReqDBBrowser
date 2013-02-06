@@ -138,8 +138,12 @@ namespace ReqDBBrowser
         List<ReqTraceNode>[] grid;
         System.Collections.Generic.Dictionary <int, ReqTraceNode> dictReqKey;
         const ulong ulLevelMultiplier = 20UL;
+        public delegate bool ShowProgressReqTraceGrid(int nAddReq, int nReadReq, string strLog);
+        ShowProgressReqTraceGrid showProgressReqTraceGrid;
+
         
-        public ReqTraceGrid(int nMaxLevelFrom, int nMaxLevelTo, int nMaxTraceCount, int nMaxFromTraceHops, int nMaxToTraceHops)
+        public ReqTraceGrid(int nMaxLevelFrom, int nMaxLevelTo, int nMaxTraceCount, 
+            int nMaxFromTraceHops, int nMaxToTraceHops, ShowProgressReqTraceGrid showProgressReqTraceGrid)
         {
             this.nMaxLevelFrom = nMaxLevelFrom;
             this.nMaxLevelTo = nMaxLevelTo;
@@ -150,21 +154,33 @@ namespace ReqDBBrowser
             for (int i=0; i<(nMaxLevelFrom+nMaxLevelTo+1); i++)
                 grid[i] = new List<ReqTraceNode>();
             dictReqKey = new System.Collections.Generic.Dictionary<int, ReqTraceNode>();
+            this.showProgressReqTraceGrid = showProgressReqTraceGrid;
         }
 
-        public void AddReq(ReqProRequirementPrx reqReqPrx)
+        public void AddReq(System.Collections.ArrayList arrReqPrx)
         {
+            ulong ulRelDegree = 1;
+            
             /* First let us step through the requirements tree */
-            AddReq(reqReqPrx, 0, 0, 0, 1);
+            showProgressReqTraceGrid(1, 0, "starting Requirement Trace Analysis");
+
+            foreach (ReqProRequirementPrx reqReqPrx in arrReqPrx)
+            {
+                AddReq(reqReqPrx, 0, 0, 0, ulRelDegree);
+                ulRelDegree += 10000;
+            }
 
             /* then sort according to the relation degree */
+            showProgressReqTraceGrid(0, 0, "sorting Requirements based on the Relationship");
             for (int i = nMaxLevelFrom; i >= -nMaxLevelTo; i--)
                 grid[TraceLevel2Index(i)].Sort(ReqTraceNode.CompareReqTraceNodebyRelationDegree);
 
             /* finally publish the position to each node */
+            showProgressReqTraceGrid(0, 0, "Publish Position to the Requirements");
             for (int i = -nMaxLevelTo; i <= nMaxLevelFrom; i++)
                 for (int j = 0; j < GetElementCount(i); j++)
                     grid[TraceLevel2Index(i)][j].SetCoordinates(j, i, dictReqKey);
+            showProgressReqTraceGrid(0, 0, null);
         }
 
         private int TraceLevel2Index(int nTraceLevel)
@@ -175,6 +191,9 @@ namespace ReqDBBrowser
         private void AddReq(ReqProRequirementPrx reqReqPrx, 
             int nTraceLevel, int nTraceFromHopCount, int nTraceToHopCount, ulong ulDegreeOffset)
         {
+            if (dictReqKey.ContainsKey (reqReqPrx.Key))
+                return;
+
             ReqProRequirementPrx.eTraceAbortReason eAbort = ReqProRequirementPrx.eTraceAbortReason.eNoAbort;
             int nTracesTo;
             int nTracesFrom;
@@ -194,17 +213,21 @@ namespace ReqDBBrowser
 
             grid[TraceLevel2Index(nTraceLevel)].Add(reqTraceNode);
 
+            showProgressReqTraceGrid(0, 1, "Adding: " + reqTraceNode.Tag);
+
             if ((aTracesFrom.GetLength(0) > 0) && (nTraceLevel < this.nMaxLevelFrom))
                 if (nTraceFromHopCount < this.nMaxFromTraceHops)
                 {
                     int nNextTraceFromHopCount = nTraceFromHopCount;
                     ulong ulLocOffset = ulDegreeOffset * ulLevelMultiplier;
+                    showProgressReqTraceGrid(aTracesFrom.GetLength(0), 0, null);
                     foreach (ReqProRequirementPrx reqReqPrxFrom in aTracesFrom)
                         if (dictReqKey.ContainsKey(reqReqPrxFrom.Key))
                         {
                             ReqTraceNode reqTN = dictReqKey[reqReqPrxFrom.Key];
                             reqTN.SetRelDegree(ulLocOffset);
-                        } else
+                        }
+                        else
                         {
                             ulLocOffset += ulDegreeInc;
                             AddReq(reqReqPrxFrom, nTraceLevel + 1, ++nNextTraceFromHopCount, nTraceToHopCount,
@@ -212,26 +235,36 @@ namespace ReqDBBrowser
                         }
                 }
                 else
+                {
                     System.Diagnostics.Trace.WriteLine("From Hops exceeded at: " + reqReqPrx.TagName);
+                    showProgressReqTraceGrid(0, 0, "tracing from hops exceeded at: " + reqTraceNode.Tag);
+                }
+
 
             if ((aTracesTo.GetLength(0) > 0) && (nTraceLevel > -this.nMaxLevelTo))
                 if (++nTraceToHopCount <= this.nMaxToTraceHops)
                 {
                     int nNextTraceToHopCount = nTraceToHopCount;
                     ulong ulLocOffset = ulDegreeOffset;
+                    showProgressReqTraceGrid(aTracesTo.GetLength(0), 0, null);
                     foreach (ReqProRequirementPrx reqReqPrxTo in aTracesTo)
                         if (dictReqKey.ContainsKey(reqReqPrxTo.Key))
                         {
                             ReqTraceNode reqTN = dictReqKey[reqReqPrxTo.Key];
                             reqTN.SetRelDegree(ulLocOffset);
-                        } else
+                        }
+                        else
                         {
                             ulLocOffset += ulDegreeInc;
                             AddReq(reqReqPrxTo, nTraceLevel - 1, nTraceFromHopCount, nTraceToHopCount, ulLocOffset);
                         }
                 }
                 else
+                {
+
                     System.Diagnostics.Trace.WriteLine("To Hops exceeded at: " + reqReqPrx.TagName);
+                    showProgressReqTraceGrid(0, 0, "tracing to exceeded at: " + reqTraceNode.Tag);
+                }
         }
 
         public int GetElementCount(int nLevel)

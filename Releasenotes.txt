@@ -1,0 +1,12 @@
+Releasenotes
+
+2013-02-06
+Functional Extension: Requirement Traces also on package level possible
+Beautification: Arrows in the "Tree" page
+Preparation: REQ Revisions - prototyping within "formMain"
+
+2013-02-05
+Context Menu in TreeView
+
+2013-02-04
+Beautification of TreeView (Icons added)

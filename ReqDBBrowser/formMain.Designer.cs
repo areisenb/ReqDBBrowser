@@ -28,6 +28,7 @@ namespace ReqDBBrowser
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FormMain));
             this.menuStripMain = new System.Windows.Forms.MenuStrip();
             this.projectToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -44,6 +45,7 @@ namespace ReqDBBrowser
             this.tabDetails = new System.Windows.Forms.TabControl();
             this.tabPageTable = new System.Windows.Forms.TabPage();
             this.tabPageTree = new System.Windows.Forms.TabPage();
+            this.imageListReqTree = new System.Windows.Forms.ImageList(this.components);
             this.menuStripMain.SuspendLayout();
             this.toolStripMain.SuspendLayout();
             this.splitContainerMain.Panel2.SuspendLayout();
@@ -86,6 +88,7 @@ namespace ReqDBBrowser
             this.closeToolStripMenuItem.Name = "closeToolStripMenuItem";
             this.closeToolStripMenuItem.Size = new System.Drawing.Size(103, 22);
             this.closeToolStripMenuItem.Text = "Close";
+            this.closeToolStripMenuItem.Click += new System.EventHandler(this.closeToolStripMenuItem_Click);
             // 
             // toolStripSeparator1
             // 
@@ -139,6 +142,7 @@ namespace ReqDBBrowser
             this.toolStripButtonRefresh.Size = new System.Drawing.Size(23, 22);
             this.toolStripButtonRefresh.Text = "toolStripButtonRefresh";
             this.toolStripButtonRefresh.ToolTipText = "Refresh";
+            this.toolStripButtonRefresh.Click += new System.EventHandler(this.toolStripButtonRefresh_Click);
             // 
             // splitContainerMain
             // 
@@ -163,6 +167,7 @@ namespace ReqDBBrowser
             this.tabDetails.SelectedIndex = 0;
             this.tabDetails.Size = new System.Drawing.Size(640, 429);
             this.tabDetails.TabIndex = 0;
+            this.tabDetails.SizeChanged += new System.EventHandler(this.tabDetails_SizeChanged);
             // 
             // tabPageTable
             // 
@@ -184,6 +189,18 @@ namespace ReqDBBrowser
             this.tabPageTree.TabIndex = 1;
             this.tabPageTree.Text = "Tree";
             this.tabPageTree.UseVisualStyleBackColor = true;
+            this.tabPageTree.Paint += new System.Windows.Forms.PaintEventHandler(this.tabPageTree_Paint);
+            this.tabPageTree.Scroll += new System.Windows.Forms.ScrollEventHandler(this.tabPageTree_Scroll);
+            this.tabPageTree.ClientSizeChanged += new System.EventHandler(this.tabPageTree_ClientSizeChanged);
+            // 
+            // imageListReqTree
+            // 
+            this.imageListReqTree.ImageStream = ((System.Windows.Forms.ImageListStreamer)(resources.GetObject("imageListReqTree.ImageStream")));
+            this.imageListReqTree.TransparentColor = System.Drawing.Color.Transparent;
+            this.imageListReqTree.Images.SetKeyName(0, "Project.PNG");
+            this.imageListReqTree.Images.SetKeyName(1, "folder_closed.png");
+            this.imageListReqTree.Images.SetKeyName(2, "folder_open.png");
+            this.imageListReqTree.Images.SetKeyName(3, "Requirement.PNG");
             // 
             // FormMain
             // 
@@ -227,5 +244,6 @@ namespace ReqDBBrowser
         private System.Windows.Forms.TabControl tabDetails;
         private System.Windows.Forms.TabPage tabPageTable;
         private System.Windows.Forms.TabPage tabPageTree;
+        private System.Windows.Forms.ImageList imageListReqTree;
     }
 }
