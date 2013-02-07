@@ -24,6 +24,14 @@ namespace ReqDBBrowser
             eMaxToLevelReached =    0x0010
         }
 
+        public struct sHistEntry
+        {
+            public string strRevision;
+            public DateTime date;
+            public string strUser;
+            public string strDesc;
+        }
+
         ReqPro40.Requirement rpxReq;
         int nKey;
         ReqPro40.Project rpxProject;
@@ -172,6 +180,24 @@ namespace ReqDBBrowser
             return new ReqProRequirementPrx[0];
         }
 
+        public void GetRequirementLog(out ReqProRequirementPrx.sHistEntry[] asHistory)
+        {
+            ReqPro40.Revision rpxRev;
+            int nCount;
+
+            nCount = rpxReq.Revisions.Count;
+            asHistory = new ReqProRequirementPrx.sHistEntry[nCount];
+
+            for (int i = 0; i < nCount; i++)
+            {
+                rpxRev = rpxReq.Revisions[i + 1, ReqPro40.enumRevisionLookups.eRevLookup_Index];
+                asHistory[i].strRevision = rpxRev.VersionNumber;
+                asHistory[i].date = DateTime.Parse (rpxRev.VersionDateTime);
+                asHistory[i].strUser = rpxRev.VersionUser.FullName;
+                asHistory[i].strDesc = rpxRev.VersionReason;
+            }
+
+        }
 
     }
 }

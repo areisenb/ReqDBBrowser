@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -117,20 +117,30 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
-  <data name="close" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\ResourceFiles\close.png;System.Drawing.Bitmap, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="excel" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\ResourceFiles\excel.png;System.Drawing.Bitmap, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="refresh" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\ResourceFiles\refresh.png;System.Drawing.Bitmap, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="refresh_sm" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\ResourceFiles\refresh_sm.png;System.Drawing.Bitmap, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="refresh_sm1" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\ResourceFiles\refresh_sm.png;System.Drawing.Bitmap, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  <metadata name="toolStripMain.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>17, 17</value>
+  </metadata>
+  <assembly alias="System.Drawing" name="System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+  <data name="$this.Icon" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        AAABAAIAICAQAAAAAADoAgAAJgAAABAQEAAAAAAAKAEAAA4DAAAoAAAAIAAAAEAAAAABAAQAAAAAAIAC
+        AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAgAAAAICAAIAAAACAAIAAgIAAAMDAwACAgIAAAAD/AAD/
+        AAAA//8A/wAAAP8A/wD//wAA////AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+        AAAAAAAAAAAAAAAAB///AAAAAAAAAAAAAAAAAAe/v///AAAAAAAAAAAAAABzu/v7v///AAAAAAAAAAAA
+        dz+/v78/s///AAAAAAAAAHN7+/v7Oz8/s///AAAAAAc3M7u7uzs7Oz87+///AAAHM3O7u7M7Ozs7P7+/
+        v/sAB3Mzt7e7Ozs7Ozu7+/uwAHMzOAd3e7ezuzs7u7u/AABzeDB///d3e3tzu7u7uwAHNzMHM7+///d3
+        d7e3u7AABzOIBzf7+/v///d3e3sAAAN4MHNzv7+zuzv///dwAAAAMwc3Nzu7s7Ozv7+/8AAAAAMDczM7
+        u7Ozs7v7+wAAAAAAdzc3M7szs7O7u7AAAAAAAAMzM4O3s7Ozu7sAAAAAAAAANzgwd3t7O7uwAAAAAAAA
+        AAODB//3d7e3sAAAAAAAAAAAMHc7v/93dwAAAAAAAAAAAABze/s7//AAAAAAAAAAAAAANzO/P78AAAAA
+        AAAAAAAAAANzuzvwAAAAAAAAAAAAAAAAM7M7sAAAAAAAAAAAAAAAAAN7OwAAAAAAAAAAAAAAAAAAO7AA
+        AAAAAAAAAAAAAAAAAAsAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA////////
+        ////////+D////gD///wAD//8AAD//AAAD/gAAAD4AAAAOAAAAHAAAADwAAAA4AAAAeAAAAPgAAAH8AA
+        AB/gAAA/8AAAf/gAAP/8AAH//gAB//8AA///gAf//8AP///gH///8B////g////8f////v//////////
+        //8oAAAAEAAAACAAAAABAAQAAAAAAMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAgAAAAICAAIAA
+        AACAAIAAgIAAAMDAwACAgIAAAAD/AAD/AAAA//8A/wAAAP8A/wD//wAA////AAAACIAAAAAAAAg7uIgA
+        AAAAg7O/v4iAAAg7O/v7+/iIg7O4v7+/v7s7O4OIi/v7sAO4O7+4iLsAAIOzu/v7gAAAOzu/v7+wAAAD
+        uIiL+wAAAACDu/iAAAAAADuPv7AAAAAAA7v7AAAAAAAAP7AAAAAAAAALAAAAAAAAAAAAAAAA+f8AAOA/
+        AADABwAAgAAAAAAAAAAAAQAAgAMAAMAHAADABwAA4A8AAPAfAADwHwAA+D8AAPx/AAD+/wAA//8AAA==
+</value>
   </data>
 </root>

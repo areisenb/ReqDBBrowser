@@ -117,8 +117,6 @@ namespace ReqDBBrowser
             ArrayList arrReqPrx = new ArrayList();
 
             Cursor = Cursors.WaitCursor;
-            Invalidate();
-            this.tabPageTree.Invalidate();
             foreach (int nKey in arrKeys)
             {
                 reqReqPrx = reqDBBrowser.GetRequirementPrx(nKey);
@@ -131,6 +129,8 @@ namespace ReqDBBrowser
             PrepareDataGrid();
             PopulateDataGrid(2, 2);
             PopulateGraph(2, 2);
+            Invalidate();
+            this.tabPageTree.Invalidate();
             Cursor = Cursors.Default;
         }
 
@@ -266,6 +266,99 @@ namespace ReqDBBrowser
                 }
         }
 
+        private void ShowRequirementLog(int nKey)
+        {
+            FormGenericTable genTable;
+            ReqProRequirementPrx.sHistEntry[] asHistory;
+            ReqProRequirementPrx rpxReq;
+            int nCount;
+            string[,] astrGrid;
+            string[] astrHead;
+            float[] afHeadSize;
+            
+            rpxReq = reqDBBrowser.GetRequirementPrx (nKey);
+            astrHead = new string[2];
+            astrHead[0] = rpxReq.Name;
+            astrHead[1] = rpxReq.Text;
+            afHeadSize = new float[2];
+            afHeadSize[0] = 3F / 2;
+            afHeadSize[1] = 11F / 2;
+
+            genTable = new FormGenericTable("Log - Requirement: " + rpxReq.Tag, astrHead, afHeadSize);
+            rpxReq.GetRequirementLog(out asHistory);
+            nCount = asHistory.GetLength(0);
+
+            astrGrid = new string [nCount+1,4];
+            astrGrid[0, 0] = "Rev";
+            astrGrid[0, 1] = "Date";
+            astrGrid[0, 2] = "User";
+            astrGrid[0, 3] = "Description";
+
+            for (int i = 1; i <= nCount; i++)
+            {
+                astrGrid[i,0] = asHistory[i-1].strRevision;
+                astrGrid[i,1] = asHistory[i-1].date.ToString("u");
+                astrGrid[i,2] = asHistory[i-1].strUser;
+                astrGrid[i,3] = asHistory[i-1].strDesc;
+            }
+
+            genTable.SetGridContent(astrGrid);
+            genTable.Show();
+        }
+
+        private void ShowRequirementsLog(ArrayList arrKeys)
+        {
+            ReqProRequirementPrx rpxReq;
+            FormGenericTable genTable;
+            ReqProRequirementPrx.sHistEntry[] asPerReqHistory;
+            int nCount;
+            string[,] astrGrid;
+            List<ReqProRequirementPrx.sHistEntry> listHistory;
+            List<string> listTag;
+            List<string> listName;
+
+            listHistory = new List<ReqProRequirementPrx.sHistEntry>();
+            listTag = new List<string>();
+            listName = new List<string>();
+
+            genTable = new FormGenericTable("Log - Package: " + "???", null, null);
+
+            foreach (int nKey in arrKeys)
+            {
+                rpxReq = reqDBBrowser.GetRequirementPrx(nKey);
+                rpxReq.GetRequirementLog(out asPerReqHistory);
+                listHistory.AddRange(asPerReqHistory);
+                for (int i = 0; i < asPerReqHistory.GetLength(0); i++)
+                {
+                    listTag.Add(rpxReq.Tag);
+                    listName.Add(rpxReq.Name);
+                }
+            }
+
+            nCount = listHistory.Count;
+
+            astrGrid = new string[nCount + 1, 6];
+            astrGrid[0, 0] = "Tag";
+            astrGrid[0, 1] = "Name";
+            astrGrid[0, 2] = "Rev";
+            astrGrid[0, 3] = "Date";
+            astrGrid[0, 4] = "User";
+            astrGrid[0, 5] = "Description";
+
+            for (int i = 1; i <= nCount; i++)
+            {
+                astrGrid[i, 0] = listTag[i-1];
+                astrGrid[i, 1] = listName[i-1];
+                astrGrid[i, 2] = listHistory[i - 1].strRevision;
+                astrGrid[i, 3] = listHistory[i - 1].date.ToString("u");
+                astrGrid[i, 4] = listHistory[i - 1].strUser;
+                astrGrid[i, 5] = listHistory[i - 1].strDesc;
+            }
+
+            genTable.SetGridContent(astrGrid);
+            genTable.Show();
+        }
+
         private void tabPageTree_Paint(object sender, PaintEventArgs e)
         {
             if (arrTraceDwg != null)
@@ -326,6 +419,29 @@ namespace ReqDBBrowser
             };
         }
 
+        public bool ReqMenuAction(int nKey, int nMenuItem, string strMenuText)
+        {
+            bool bDoImplicitSelect = false;
+            switch (nMenuItem)
+            {
+                case 0:
+                    {
+                        ArrayList arrReq = new ArrayList();
+                        arrReq.Add(nKey);
+                        DoRequirementTraces(arrReq);
+                        bDoImplicitSelect = true;
+                    }
+                    break;
+                case 1:
+                    ShowRequirementLog(nKey);
+                    break;
+                default:
+                    MessageBox.Show("Requirement " + strMenuText + " not yet implemented");
+                    break;
+            }
+            return bDoImplicitSelect;
+        }
+
         public void GetPkgCtxMenu(out string[] astrMnuEntry)
         {
             astrMnuEntry = new string[] {
@@ -335,53 +451,24 @@ namespace ReqDBBrowser
             };
         }
 
-        public void ReqMenuAction(int nKey, int nMenuItem, string strMenuText)
-        {
-            switch (nMenuItem)
-            {
-                case 0:
-                    {
-                        ArrayList arrReq = new ArrayList();
-                        arrReq.Add(nKey);
-                        DoRequirementTraces(arrReq);
-                    }
-                    break;
-                case 1:
-                    {
-                        int nCount;
-                        ReqPro40.Requirement rpxReq = reqDBBrowser.GetRequirement(nKey);
-                        ReqPro40.Revision rpxRev;
-
-                        nCount = rpxReq.Revisions.Count;
-                        for (int i=0; i<nCount; i++) 
-                        {
-                            rpxRev = rpxReq.Revisions[i+1, ReqPro40.enumRevisionLookups.eRevLookup_Index];
-                            System.Diagnostics.Trace.WriteLine(rpxReq.get_Tag(ReqPro40.enumTagFormat.eTagFormat_Tag) + 
-                                " Rev.: " + rpxRev.VersionNumber +
-                                " Date: " + rpxRev.VersionDateTime +
-                                " User: " + rpxRev.VersionUser.FullName +
-                                " Change: " + rpxRev.VersionReason);
-                        }
-                    }
-                    break;
-                default:
-                    MessageBox.Show("Requirement " + strMenuText + " not yet implemented");
-                    break;
-            }
-        }
-
-        public void PkgMenuAction(ArrayList arrReqKeys, ArrayList arrOtherKeys,
+        public bool PkgMenuAction(ArrayList arrReqKeys, ArrayList arrOtherKeys,
             int nMenuItem, string strMenuText)
         {
+            bool bDoImplicitSelect = false;
             switch (nMenuItem)
             {
                 case 0:
                     DoRequirementTraces(arrReqKeys);
+                    bDoImplicitSelect = true;
+                    break;
+                case 1:
+                    ShowRequirementsLog(arrReqKeys);
                     break;
                 default:
                     MessageBox.Show("Package " + strMenuText + " not yet implemented");
                     break;
             }
+            return bDoImplicitSelect;
         }
     }
 }

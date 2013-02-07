@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Windows.Forms;
+using System.Collections;
 
 namespace ReqDBBrowser
 {
@@ -16,8 +17,8 @@ namespace ReqDBBrowser
         {
             void GetReqCtxMenu(out string[] astrMnuEntry);
             void GetPkgCtxMenu(out string[] astrMnuEntry);
-            void ReqMenuAction(int nKey, int nMenuItem, string strMenuText);
-            void PkgMenuAction(System.Collections.ArrayList arrReqKeys, System.Collections.ArrayList arrOtherKeys, 
+            bool ReqMenuAction(int nKey, int nMenuItem, string strMenuText);
+            bool PkgMenuAction(ArrayList arrReqKeys, ArrayList arrOtherKeys, 
                 int nMenuItem, string strMenuText);
         }
 
@@ -72,14 +73,16 @@ namespace ReqDBBrowser
             System.Collections.ArrayList arrReqKeys = new System.Collections.ArrayList();
             System.Collections.ArrayList arrOtherKeys = new System.Collections.ArrayList();
             GetNodesTagRecursive(ActiveNode, arrReqKeys, arrOtherKeys);
-            cb.PkgMenuAction(arrReqKeys, arrOtherKeys, (int) mnuItem.Tag, mnuItem.Text);
+            if (cb.PkgMenuAction(arrReqKeys, arrOtherKeys, (int)mnuItem.Tag, mnuItem.Text))
+                this.SelectedNode = ActiveNode;
         }
 
         private void mnuCtxReq_Click(object sender, EventArgs e)
         {
             ToolStripMenuItem mnuItem;
             mnuItem = (ToolStripMenuItem) sender;
-            cb.ReqMenuAction((int)ActiveNode.Tag, (int) mnuItem.Tag, mnuItem.Text);
+            if (cb.ReqMenuAction((int)ActiveNode.Tag, (int)mnuItem.Tag, mnuItem.Text))
+                this.SelectedNode = ActiveNode;
         }
 
         private void mnuCtxCollapseAll_Click(object sender, EventArgs e)

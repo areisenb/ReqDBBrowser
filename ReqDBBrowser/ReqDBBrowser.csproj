@@ -56,6 +56,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="FormGenericTable.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormGenericTable.Designer.cs">
+      <DependentUpon>FormGenericTable.cs</DependentUpon>
+    </Compile>
     <Compile Include="FormProgressReqTraceGrid.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -88,6 +94,10 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="FormGenericTable.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>FormGenericTable.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="FormProgressReqTraceGrid.resx">
       <SubType>Designer</SubType>
       <DependentUpon>FormProgressReqTraceGrid.cs</DependentUpon>
@@ -142,8 +152,6 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="ClassDiagram1.cd" />
-    <None Include="ClassDiagram2.cd" />
     <BaseApplicationManifest Include="Properties\app.manifest" />
     <None Include="ReqDBBrowser_TemporaryKey.pfx" />
     <None Include="ResourceFiles\refresh.png" />
@@ -164,6 +172,12 @@
       <ProductName>.NET Framework 2.0</ProductName>
       <Install>true</Install>
     </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ResourceFiles\excel.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ResourceFiles\close.png" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

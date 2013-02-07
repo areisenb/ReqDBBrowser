@@ -1,8 +1,13 @@
 Releasenotes
 
+2013-02-07
+Usability - implicitly select TreeNode on certain context menu clicks ("Requirement Trace")
+Usability - if trace tree selected - arrows are not updated - "Invalidate" at the proper position
+Functional Extension: Log per Requirement as well as per Package added
+
 2013-02-06
 Functional Extension: Requirement Traces also on package level possible
-Beautification: Arrows in the "Tree" page
+Beautification: Arrows for the trace relations in the "Tree" page
 Preparation: REQ Revisions - prototyping within "formMain"
 
 2013-02-05
