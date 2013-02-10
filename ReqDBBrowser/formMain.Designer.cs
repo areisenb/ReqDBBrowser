@@ -46,6 +46,9 @@ namespace ReqDBBrowser
             this.tabPageTable = new System.Windows.Forms.TabPage();
             this.tabPageTree = new System.Windows.Forms.TabPage();
             this.imageListReqTree = new System.Windows.Forms.ImageList(this.components);
+            this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
+            this.toolStripLabel = new System.Windows.Forms.ToolStripLabel();
+            this.toolStripLabelTraceRoot = new System.Windows.Forms.ToolStripLabel();
             this.menuStripMain.SuspendLayout();
             this.toolStripMain.SuspendLayout();
             this.splitContainerMain.Panel2.SuspendLayout();
@@ -126,7 +129,10 @@ namespace ReqDBBrowser
             // toolStripMain
             // 
             this.toolStripMain.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.toolStripButtonRefresh});
+            this.toolStripButtonRefresh,
+            this.toolStripSeparator2,
+            this.toolStripLabel,
+            this.toolStripLabelTraceRoot});
             this.toolStripMain.Location = new System.Drawing.Point(0, 24);
             this.toolStripMain.Name = "toolStripMain";
             this.toolStripMain.Size = new System.Drawing.Size(889, 25);
@@ -202,6 +208,21 @@ namespace ReqDBBrowser
             this.imageListReqTree.Images.SetKeyName(2, "folder_open.png");
             this.imageListReqTree.Images.SetKeyName(3, "Requirement.PNG");
             // 
+            // toolStripSeparator2
+            // 
+            this.toolStripSeparator2.Name = "toolStripSeparator2";
+            this.toolStripSeparator2.Size = new System.Drawing.Size(6, 25);
+            // 
+            // toolStripLabel
+            // 
+            this.toolStripLabel.Name = "toolStripLabel";
+            this.toolStripLabel.Size = new System.Drawing.Size(0, 22);
+            // 
+            // toolStripLabelTraceRoot
+            // 
+            this.toolStripLabelTraceRoot.Name = "toolStripLabelTraceRoot";
+            this.toolStripLabelTraceRoot.Size = new System.Drawing.Size(0, 22);
+            // 
             // FormMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -245,5 +266,8 @@ namespace ReqDBBrowser
         private System.Windows.Forms.TabPage tabPageTable;
         private System.Windows.Forms.TabPage tabPageTree;
         private System.Windows.Forms.ImageList imageListReqTree;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
+        private System.Windows.Forms.ToolStripLabel toolStripLabel;
+        private System.Windows.Forms.ToolStripLabel toolStripLabelTraceRoot;
     }
 }

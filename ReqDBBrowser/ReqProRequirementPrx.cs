@@ -13,6 +13,10 @@ namespace ReqDBBrowser
         string strPrefix;
 
         static string strHomePrjPrefix;
+        static ReqPro40.Requirements rpxReqColl = null;
+
+        static Dictionary<int, ReqPro40.Requirement> dictReqCache;
+        private const int nReqCacheSize = 2000;
 
         public enum eTraceAbortReason
         {
@@ -36,6 +40,11 @@ namespace ReqDBBrowser
         int nKey;
         ReqPro40.Project rpxProject;
 
+        static ReqProRequirementPrx()
+        {
+            dictReqCache = new Dictionary<int,Requirement> ();
+        }
+
         private ReqProRequirementPrx()
         {
             strTag = "";
@@ -49,31 +58,71 @@ namespace ReqDBBrowser
 
         private ReqProRequirementPrx(string strTag, string strName, string strText)
         {
-            this.strPrefix = "";
-            this.strTag = strTag;
-            this.strName = strName;
-            this.strText = strText;
-            rpxReq = null;
-            rpxProject = null;
-            nKey = -1;
+            Init(strTag, strName, strText);
         }
 
-        public ReqProRequirementPrx(ReqPro40.Requirement rpxReq):
-            this((rpxReq!=null) ? rpxReq.get_Tag(ReqPro40.enumTagFormat.eTagFormat_Tag):"",
-                (rpxReq != null) ? rpxReq.Name : "unknown", (rpxReq != null) ? rpxReq.Text : "unknown")
+        public ReqProRequirementPrx(ReqPro40.Requirement rpxReq)
         {
-            this.rpxReq = rpxReq;
+            Init(rpxReq);
         }
 
-        public ReqProRequirementPrx(ReqPro40.Project rpxProject, int nKey):
-            this((rpxProject!=null) ? rpxProject.GetRequirement
-                (nKey, ReqPro40.enumRequirementLookups.eReqLookup_Key,
-                 ReqPro40.enumRequirementsWeights.eReqWeight_Medium,
-                 ReqPro40.enumRequirementFlags.eReqFlag_Empty):null)
+        public ReqProRequirementPrx(ReqPro40.Project rpxProject, int nKey)
         {
+            if (rpxProject == null)
+            {
+                Init("Key " + nKey, "unknown Project", "unknown Project");
+            }
+            else if (!rpxProject.IsProjectOpen)
+            {
+                Init("Key " + nKey, "not accessible", "not accessible");
+            }
+            else
+            {
+                ReqPro40.Requirement rpxReq = null;
+                Tracer tracer = new Tracer("Req (Key: " + nKey + ")");
+                if (rpxReqColl != null)
+                    if (rpxProject.Prefix == strHomePrjPrefix)
+                        /* somehow strange - Requirement discovered - but not accessible if it does not belong to the home project */
+                        rpxReq = rpxReqColl[nKey, ReqPro40.enumRequirementLookups.eReqLookup_Key];
+                if (rpxReq != null)
+                    tracer.Stop("Req " + rpxReq.get_Tag(enumTagFormat.eTagFormat_Tag) + " got via rpxColl []");
+                else
+                {
+                    try
+                    {
+                        rpxReq = dictReqCache[nKey];
+                        dictReqCache.Remove(nKey);
+                        dictReqCache.Add(nKey, rpxReq);
+                        tracer.Stop("Req " + ((rpxReq != null) ? (rpxReq.get_Tag(enumTagFormat.eTagFormat_Tag)) : ("key " + nKey)) +
+                            " got via ReqCache");
+                    }
+                    catch (System.Collections.Generic.KeyNotFoundException e)
+                    {
+                        rpxReq = rpxProject.GetRequirement(
+                             nKey, ReqPro40.enumRequirementLookups.eReqLookup_Key,
+                             ReqPro40.enumRequirementsWeights.eReqWeight_Medium,
+                             ReqPro40.enumRequirementFlags.eReqFlag_Empty);
+                        dictReqCache.Add(nKey, rpxReq);
+
+                        if (dictReqCache.Count > nReqCacheSize)
+                        {
+                            foreach (KeyValuePair<int, ReqPro40.Requirement> kvp in dictReqCache)
+                            {
+                                dictReqCache.Remove(kvp.Key);
+                                break;
+                            }
+                        }
+                        tracer.Stop("Req " + ((rpxReq != null) ? (rpxReq.get_Tag(enumTagFormat.eTagFormat_Tag)) : ("key " + nKey)) +
+                            " got via rpxProject.GetRequirement");
+                    }
+                }
+                Init(rpxReq);
+            }
+
             this.rpxProject = rpxProject;
             this.nKey = nKey;
             strPrefix = "";
+
             if (rpxProject != null)
                 if (rpxProject.Prefix != strHomePrjPrefix)
                     strPrefix = rpxProject.Prefix;
@@ -89,6 +138,27 @@ namespace ReqDBBrowser
             this.strTag = reqProReqPrx.strTag;
             this.strText = reqProReqPrx.strText;
         }
+
+        private void Init(string strTag, string strName, string strText)
+        {
+            this.strPrefix = "";
+            this.strTag = strTag;
+            this.strName = strName;
+            this.strText = strText;
+            rpxReq = null;
+            rpxProject = null;
+            nKey = -1;
+        }
+
+        public void Init(ReqPro40.Requirement rpxReq)
+        {
+            if (rpxReq == null)
+                Init("", "unknown", "unknown");
+            else
+                Init(rpxReq.get_Tag(ReqPro40.enumTagFormat.eTagFormat_Tag), rpxReq.Name, rpxReq.Text);
+            this.rpxReq = rpxReq;
+        }
+
 
         public string Tag
         { get 
@@ -114,32 +184,48 @@ namespace ReqDBBrowser
             get { return strHomePrjPrefix; }
             set { strHomePrjPrefix = value; }
         }
-            
 
+        public static ReqPro40.Requirements RPXReqColl
+        {
+            set { rpxReqColl = value; }
+        }
 
         public ReqProRequirementPrx[] GetRequirementTraces
             (ReqPro40.Relationships rpxRelations, int nMaxTraceCount, out int nTraceCount)
         {
+            bool bDoNotRead;
             int nCount = rpxRelations.Count;
+            nTraceCount = nCount;
             if (nCount > nMaxTraceCount)
                 nCount = 0;
 
-            nTraceCount = nCount;
             ReqProRequirementPrx[] aReqPrx = new ReqProRequirementPrx[nCount];
             rpxRelations.MoveFirst();
             for (int i = 0; i < nCount; i++)
             {
                 try
                 {
+                    if ((rpxRelations.ItemCurrent.Permissions == enumPermissions.ePerm_None) ||
+                        (rpxRelations.ItemCurrent.Permissions == enumPermissions.ePermission_None))
+                        bDoNotRead = true;
+                    else
+                        bDoNotRead = false;
+
                     if (rpxRelations.Direction == enumRelationshipDirections.eRelDirection_To)
                     {
-                        aReqPrx[i] = new ReqProRequirementPrx
-                            (rpxRelations.ItemCurrent.DestinationProject, rpxRelations.ItemCurrent.DestinationKey);
+                        if (bDoNotRead)
+                            aReqPrx[i] = new ReqProRequirementPrx("Key " + rpxRelations.ItemCurrent.DestinationKey, "no permission", "no permission");
+                        else 
+                            aReqPrx[i] = new ReqProRequirementPrx
+                                (rpxRelations.ItemCurrent.DestinationProject, rpxRelations.ItemCurrent.DestinationKey);
                     }
                     else
                     {
-                        aReqPrx[i] = new ReqProRequirementPrx
-                            (rpxRelations.ItemCurrent.SourceProject, rpxRelations.ItemCurrent.SourceKey);
+                        if (bDoNotRead)
+                            aReqPrx[i] = new ReqProRequirementPrx("Key " + rpxRelations.ItemCurrent.SourceKey, "no permission", "no permission");
+                        else
+                            aReqPrx[i] = new ReqProRequirementPrx
+                                (rpxRelations.ItemCurrent.SourceProject, rpxRelations.ItemCurrent.SourceKey);
                     }
                 }
                 catch (Exception)

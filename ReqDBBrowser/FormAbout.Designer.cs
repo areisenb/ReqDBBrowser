@@ -32,12 +32,13 @@ namespace ReqDBBrowser
             this.labelName = new System.Windows.Forms.Label();
             this.labelVersion = new System.Windows.Forms.Label();
             this.buttonOK = new System.Windows.Forms.Button();
+            this.labelInstallVar = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // labelName
             // 
             this.labelName.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.labelName.Location = new System.Drawing.Point(88, 81);
+            this.labelName.Location = new System.Drawing.Point(88, 28);
             this.labelName.Name = "labelName";
             this.labelName.Size = new System.Drawing.Size(184, 34);
             this.labelName.TabIndex = 0;
@@ -63,11 +64,21 @@ namespace ReqDBBrowser
             this.buttonOK.Text = "OK";
             this.buttonOK.UseVisualStyleBackColor = true;
             // 
+            // labelInstallVar
+            // 
+            this.labelInstallVar.AutoSize = true;
+            this.labelInstallVar.Location = new System.Drawing.Point(46, 97);
+            this.labelInstallVar.Name = "labelInstallVar";
+            this.labelInstallVar.Size = new System.Drawing.Size(70, 13);
+            this.labelInstallVar.TabIndex = 3;
+            this.labelInstallVar.Text = "Install Variant";
+            // 
             // FormAbout
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(284, 262);
+            this.Controls.Add(this.labelInstallVar);
             this.Controls.Add(this.buttonOK);
             this.Controls.Add(this.labelVersion);
             this.Controls.Add(this.labelName);
@@ -85,5 +96,6 @@ namespace ReqDBBrowser
         private System.Windows.Forms.Label labelName;
         private System.Windows.Forms.Label labelVersion;
         private System.Windows.Forms.Button buttonOK;
+        private System.Windows.Forms.Label labelInstallVar;
     }
 }

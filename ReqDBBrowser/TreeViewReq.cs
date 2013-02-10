@@ -19,7 +19,7 @@ namespace ReqDBBrowser
             void GetPkgCtxMenu(out string[] astrMnuEntry);
             bool ReqMenuAction(int nKey, int nMenuItem, string strMenuText);
             bool PkgMenuAction(ArrayList arrReqKeys, ArrayList arrOtherKeys, 
-                int nMenuItem, string strMenuText);
+                int nMenuItem, string strMenuText, string strTreePathName);
         }
 
         public TreeViewReq(ITreeViewReqCb cb, ImageList imageListTree)
@@ -73,7 +73,7 @@ namespace ReqDBBrowser
             System.Collections.ArrayList arrReqKeys = new System.Collections.ArrayList();
             System.Collections.ArrayList arrOtherKeys = new System.Collections.ArrayList();
             GetNodesTagRecursive(ActiveNode, arrReqKeys, arrOtherKeys);
-            if (cb.PkgMenuAction(arrReqKeys, arrOtherKeys, (int)mnuItem.Tag, mnuItem.Text))
+            if (cb.PkgMenuAction(arrReqKeys, arrOtherKeys, (int)mnuItem.Tag, mnuItem.Text, ActiveNode.FullPath))
                 this.SelectedNode = ActiveNode;
         }
 

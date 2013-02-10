@@ -23,15 +23,21 @@ namespace ReqDBBrowser
         Dictionary <int, object> dictPackage;
 
         eState state;
+        IReqProProjectCb cb;
 
+        public interface IReqProProjectCb
+        {
+            bool RequestCredentials(string strProjectDesc, ref string strUser, out string strPassword);
+            void ShowOpenRelatedProjectError(string strProjectDesc);
+            bool ShowProgressReqPkgTree(int nSumTreeElements, int nReadTreeElements, 
+                int nSumRequirements, int nReadRequirements, string strLogg);
+            bool ShowProgressOpenProject(string strLogg);
+        }
 
-        public delegate bool RequestCredentialsCallback(string strProjectDesc, ref string strUser, out string strPassword);
-        public delegate void ShowOpenReleatedProjectErrorCallback(string strProjectDesc);
-        public delegate bool ShowProgressReqPkgTreeCallback(int nSumTreeElements, int nReadTreeElements, int nSumRequirements, int nReadRequirements, string strLogg);
-
-        public ReqProProject ()
+        public ReqProProject (IReqProProjectCb cb)
         {
             state = eState.stDisc;
+            this.cb = cb;
 
             rpxApplication = new ReqPro40.Application ();
             rpxCatalog = (ReqPro40.CatalogClass) rpxApplication.PersonalCatalog;
@@ -67,8 +73,7 @@ namespace ReqDBBrowser
         }
 
         public bool OpenProject(string strProject, string strUser, string strPassword,
-            RequestCredentialsCallback requestCredentialCallback, 
-            ShowOpenReleatedProjectErrorCallback showOpenReleatedProjectErrorCallback, out string strErrDiag)
+            out string strErrDiag)
         {
             strErrDiag = "";
             bool bRet = false;
@@ -78,6 +83,7 @@ namespace ReqDBBrowser
                 {
                     CloseProject();
                 }
+                cb.ShowProgressOpenProject("Opening " + strProject);
                 rpxProject = rpxApplication.OpenProject(strProject,
                     ReqPro40.enumOpenProjectOptions.eOpenProjOpt_RQSFile,
                     strUser,
@@ -94,6 +100,8 @@ namespace ReqDBBrowser
                 string strRelPrjPassword;
                 string strRelPrjUser;
 
+                cb.ShowProgressOpenProject("Related Projects to be opened: " + nCountRelPrj);
+
                 ReqPro40.RelatedProjectContext rpxRelPrjCtx;
                 ReqPro40.Project rpxRelPrj;
 
@@ -109,7 +117,9 @@ namespace ReqDBBrowser
                         {
                             try
                             {
+                                cb.ShowProgressOpenProject("Opening: " + rpxRelPrjCtx.get_Name());
                                 rpxRelPrj = rpxRelPrjCtx.OpenProject(strRelPrjUser, strRelPrjPassword);
+                                cb.ShowProgressOpenProject("Opened: " + rpxRelPrj.Name);
                             }
                             catch (System.Runtime.InteropServices.COMException e)
                             {
@@ -120,14 +130,18 @@ namespace ReqDBBrowser
                                 }
                                 if (bPasswordError)
                                 {
-                                    bLoadRelPrj = requestCredentialCallback(rpxRelPrjCtx.get_Name(),
+                                    bLoadRelPrj = cb.RequestCredentials(rpxRelPrjCtx.get_Name(),
                                         ref strRelPrjUser, out strRelPrjPassword);
                                 }
+                                else
+                                    bLoadRelPrj = false;
                             }
                         }
-
                     else
+                    {
                         rpxRelPrj = rpxRelPrjCtx.ThisProject;
+                        cb.ShowProgressOpenProject("Already opened: " + rpxRelPrj.Name);
+                    }
 
                     if (rpxRelPrj != null)
                         arpxRelProjects.Add(rpxRelPrj);
@@ -153,20 +167,21 @@ namespace ReqDBBrowser
             }
         }
 
-        public ReqTreeNode ReadReqTree(out int nPackageCount, ShowProgressReqPkgTreeCallback showProgressReqTreeCallback)
+        public ReqTreeNode ReadReqTree(out int nPackageCount)
         {
             ReqPro40.Package rpxPackage;
             ReqPro40.RootPackage rpxRootPackage;
+
             int nPackageRead = 0;
 
-            showProgressReqTreeCallback(0, 0, 0, 0, "Identifying Packages");
+            cb.ShowProgressReqPkgTree(0, 0, 0, 0, "Identifying Packages");
             rpxRootPackage = rpxProject.GetRootPackage(true);
             object[,] o = (object[,])rpxRootPackage.
                 FindPackageElements(ReqPro40.enumElementTypes.eElemType_Package,
                     "*", 0, ReqPro40.enumElementTypes.eElemType_Package, false);
             nPackageCount = o.GetLength(1);
             o = null;
-            showProgressReqTreeCallback(nPackageCount, 0, 0, 0, nPackageCount + " Packages identified");
+            cb.ShowProgressReqPkgTree(nPackageCount, 0, 0, 0, nPackageCount + " Packages identified");
             reqRootTreeNode = new ReqTreeNode
                 (rpxRootPackage.Name, rpxRootPackage.key, ReqTreeNode.eReqTreeNodeType.eTreeNodeRoot);
 
@@ -176,19 +191,19 @@ namespace ReqDBBrowser
             while (!rpxRootPackage.IsEOF)
             {
                 rpxPackage = (ReqPro40.Package)rpxRootPackage.GetCurrentElement();
-                ReadReqTreeNode(rpxPackage, ref reqRootTreeNode, ref nPackageRead, showProgressReqTreeCallback);
+                ReadReqTreeNode(rpxPackage, ref reqRootTreeNode, ref nPackageRead);
                 rpxRootPackage.MoveNext();
             }
 
-            showProgressReqTreeCallback(0, 0, 0, 0, nPackageRead + " Packages read");
-            ParseRequirements(showProgressReqTreeCallback);
+            cb.ShowProgressReqPkgTree(0, 0, 0, 0, nPackageRead + " Packages read");
+            ParseRequirements();
 
             state = eState.stParsed;
             return reqRootTreeNode;
         }
 
         private void ReadReqTreeNode(ReqPro40.Package rpxPackage, ref ReqTreeNode reqParentTreeNode, 
-            ref int nPackageRead, ShowProgressReqPkgTreeCallback showProgressReqTreePkgCallback)
+            ref int nPackageRead)
         {
             ReqPro40.Package rpxChildPackage;
             ReqTreeNode reqMyTreeNode;
@@ -196,27 +211,19 @@ namespace ReqDBBrowser
             reqMyTreeNode = new ReqTreeNode(rpxPackage.Name, rpxPackage.key, ReqTreeNode.eReqTreeNodeType.eTreeNodePkg);
             reqParentTreeNode.Add(ref reqMyTreeNode);
             dictPackage.Add(rpxPackage.key, reqMyTreeNode);
-            showProgressReqTreePkgCallback(0, ++nPackageRead, 0, 0, null);
+            cb.ShowProgressReqPkgTree(0, ++nPackageRead, 0, 0, null);
 
             rpxPackage.MoveFirst();
             while (!rpxPackage.IsEOF)
             {
                 rpxChildPackage = (ReqPro40.Package)rpxPackage.GetCurrentElement();
-                ReadReqTreeNode(rpxChildPackage, ref reqMyTreeNode, ref nPackageRead, showProgressReqTreePkgCallback);
+                ReadReqTreeNode(rpxChildPackage, ref reqMyTreeNode, ref nPackageRead);
                 rpxPackage.MoveNext();
             }
         }
 
-        private void ParseRequirements(ShowProgressReqPkgTreeCallback showProgressReqTreeCallback)
+        private void ParseRequirements()
         {
-            //Set a_oReqs = a_oProject.GetRequirements("SRS", eReqsLookup_TagPrefix, eReqWeight_Medium, eReqFlag_Empty, 1000, 2)
-            //    nItemCount = a_oReqs.Count
-            // For Each vReqKey In a_oReqs
-            //        Set a_oReq = a_oReqs.Item(vReqKey, eReqLookup_Key)
-            //          ActiveSheet.Cells(i, 1).Value = a_oReq.Tag
-            //          ActiveSheet.Cells(i, 2).Value = a_oReq.Name
-            //          ActiveSheet.Cells(i, 3).Value = a_oReq.Text
-        
             ReqPro40.Requirements rpxReqColl;
             ReqPro40.Requirement rpxReq;
             int nReqCount;
@@ -224,18 +231,23 @@ namespace ReqDBBrowser
             ReqTreeNode reqMyTreeNode;
             int i = 0;
 
-            showProgressReqTreeCallback(0, 0, 0, 0, "Identifying Requirements");
+            cb.ShowProgressReqPkgTree(0, 0, 0, 0, "Identifying Requirements");
             rpxReqColl = rpxProject.GetRequirements("*", ReqPro40.enumRequirementsLookups.eReqsLookup_All,
-                ReqPro40.enumRequirementsWeights.eReqWeight_Medium, ReqPro40.enumRequirementFlags.eReqFlag_Empty, 1000, 4);
+                ReqPro40.enumRequirementsWeights.eReqWeight_Medium, ReqPro40.enumRequirementFlags.eReqFlag_Empty, 1000, 8);
+            ReqProRequirementPrx.RPXReqColl = rpxReqColl;
+
             nReqCount = rpxReqColl.Count;
-            showProgressReqTreeCallback(0, 0, nReqCount, 0, nReqCount + " Requirements identified");
+            cb.ShowProgressReqPkgTree(0, 0, nReqCount, 0, nReqCount + " Requirements identified");
             foreach (object o in rpxReqColl)
             {
+                Tracer tracer = new Tracer("Req (Key: " + o + ") from Req Coll");
                 rpxReq = rpxReqColl[o, ReqPro40.enumRequirementLookups.eReqLookup_Key];
+                tracer.Stop("Req " + rpxReq.get_Tag(ReqPro40.enumTagFormat.eTagFormat_Tag) +
+                    " got via eReqLookup_Key from Requirements Collection");
                 try
                 {
                     i++;
-                    showProgressReqTreeCallback(0, 0, 0, i, null);
+                    cb.ShowProgressReqPkgTree(0, 0, 0, i, null);
                     tnPackage = (ReqTreeNode)dictPackage[rpxReq.PackageKey];
 
                     reqMyTreeNode = new ReqTreeNode
@@ -249,8 +261,8 @@ namespace ReqDBBrowser
                 }
 
             }
-            showProgressReqTreeCallback(0, 0, 0, 0, i + " Requirements inserted");
-            showProgressReqTreeCallback(0, 0, 0, 0, null);
+            cb.ShowProgressReqPkgTree(0, 0, 0, 0, i + " Requirements inserted");
+            cb.ShowProgressReqPkgTree(0, 0, 0, 0, null);
         }
 
         public ReqPro40.Requirement GetRequirement(int nKey)

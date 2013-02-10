@@ -205,8 +205,10 @@ namespace ReqDBBrowser
             for (int i=0; i<(nTraceLevel+nMaxLevelTo); i++)
                 ulDegreeInc *= ulLevelMultiplier * ((ulong)nTraceLevel + (ulong)nMaxLevelTo);
 
+            Tracer tracer = new Tracer("Traces from/to Req " + reqReqPrx.Tag);
             aTracesTo = reqReqPrx.GetRequirementTracesTo(nMaxTraceCount, ref eAbort, out nTracesTo);
             aTracesFrom = reqReqPrx.GetRequirementTracesFrom(nMaxTraceCount, ref eAbort, out nTracesFrom);
+            tracer.Stop("Traces from/to Req " + reqReqPrx.Tag);
 
             reqTraceNode = new ReqTraceNode(reqReqPrx, ulDegreeOffset, aTracesFrom, aTracesTo, nTracesFrom, nTracesTo);
             dictReqKey.Add(reqReqPrx.Key, reqTraceNode);

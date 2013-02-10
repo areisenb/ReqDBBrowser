@@ -9,7 +9,7 @@ using System.Collections;
 
 namespace ReqDBBrowser
 {
-    public partial class FormMain : Form, TreeViewReq.ITreeViewReqCb
+    public partial class FormMain : Form, ReqProProject.IReqProProjectCb, TreeViewReq.ITreeViewReqCb
     {
         TreeViewReq treeViewRq;
         ReqProProject reqDBBrowser;
@@ -18,11 +18,12 @@ namespace ReqDBBrowser
         ReqTraceGrid reqTraceGrid;
         ArrayList arrTraceDwg;
         int oldTabPageTableWidth;
+        FormProgressReqTree formProgressReqTree;
 
         public FormMain()
         {
             InitializeComponent();
-            reqDBBrowser = new ReqProProject();
+            reqDBBrowser = new ReqProProject(this as ReqProProject.IReqProProjectCb);
             arrTraceDwg = new ArrayList();
         }
 
@@ -55,27 +56,23 @@ namespace ReqDBBrowser
             if (fmOpenProject.ShowDialog() == DialogResult.OK)
             {
                 string strErrDiag;
-                Cursor = Cursors.WaitCursor;
+                formProgressReqTree = new FormProgressReqTree();
+                formProgressReqTree.Show();
                 if (reqDBBrowser.OpenProject(fmOpenProject.strProjectFile,
                     fmOpenProject.strUser,
                     fmOpenProject.strPassword,
-                    new ReqProProject.RequestCredentialsCallback(this.RequestCredentialsCallback),
-                    new ReqProProject.ShowOpenReleatedProjectErrorCallback(this.ShowOpenReleatedProjectErrorCallback),
                     out strErrDiag))
                     CreateReqTree ();
                 else
                     MessageBox.Show(strErrDiag, "Error Open Project", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                Cursor = Cursors.Default;
             }
         }
 
         private void CreateReqTree()
         {
             int nPackageCount;
-            FormProgressReqTree formProgressReqTree = new FormProgressReqTree();
 
-            formProgressReqTree.Show();
-            treeViewRq.CreateTree(reqDBBrowser.ReadReqTree(out nPackageCount, formProgressReqTree.ShowProgressReqTree));
+            treeViewRq.CreateTree(reqDBBrowser.ReadReqTree(out nPackageCount));
         }
 
         private void closeToolStripMenuItem_Click(object sender, EventArgs e)
@@ -101,22 +98,51 @@ namespace ReqDBBrowser
             CleanupViews();
         }
 
-        public bool RequestCredentialsCallback(string strProjectDesc, ref string strUser, out string strPassword)
+        /* from IReqProProjectCb */
+        public bool RequestCredentials(string strProjectDesc, ref string strUser, out string strPassword)
         {
+            FormRequestCredentials formRequestCredentials;
+
+            formRequestCredentials = new FormRequestCredentials(strProjectDesc, strUser);
+            if (formRequestCredentials.ShowDialog() == DialogResult.OK)
+            {
+                strUser = formRequestCredentials.User;
+                strPassword = formRequestCredentials.Password;
+                return true;
+            }
             strPassword = "";
             return false;
         }
 
-        public void ShowOpenReleatedProjectErrorCallback(string strProjectDesc)
+        public void ShowOpenRelatedProjectError(string strProjectDesc)
         {
         }
 
-        public void DoRequirementTraces(ArrayList arrKeys)
+        public bool ShowProgressReqPkgTree(int nSumTreeElements, int nReadTreeElements,
+            int nSumRequirements, int nReadRequirements, string strLogg)
+        {
+            return formProgressReqTree.ShowProgressReqTree
+                (nSumTreeElements, nReadTreeElements, nSumRequirements, nReadRequirements, strLogg);
+        }
+
+        public bool ShowProgressOpenProject(string strLogg)
+        {
+            return formProgressReqTree.ShowProgressReqTree(0, 0, 0, 0, strLogg);
+        }
+
+        public void DoRequirementTraces(ArrayList arrKeys, string strTreePathName)
         {
             ReqProRequirementPrx reqReqPrx;
             ArrayList arrReqPrx = new ArrayList();
 
             Cursor = Cursors.WaitCursor;
+            if (strTreePathName.Length == 0)
+            {
+                reqReqPrx = reqDBBrowser.GetRequirementPrx((int)arrKeys[0]);
+                strTreePathName = reqReqPrx.TagName;
+            }
+            toolStripLabelTraceRoot.Text = strTreePathName;
+
             foreach (int nKey in arrKeys)
             {
                 reqReqPrx = reqDBBrowser.GetRequirementPrx(nKey);
@@ -218,6 +244,8 @@ namespace ReqDBBrowser
         {
             ReqTraceGrid.ReqTraceNode reqTraceNode;
             TextBox textBReq;
+            ToolTip toolTipHdr;
+
             int j = 0;
             Size sizeText;
             Size sizeTagName;
@@ -239,12 +267,16 @@ namespace ReqDBBrowser
                     reqTraceNode = reqTraceGrid[i, k];
                     if (reqTraceNode != null)
                     {
+                        toolTipHdr = new ToolTip();
+                        
                         textBReq = new TextBox();
                         textBReq.Location = new Point(k * nXSpacing, j * nYSpacing);
                         textBReq.Size = sizeTagName;
                         textBReq.Multiline = true;
                         textBReq.ReadOnly = true;
                         textBReq.Text = reqTraceNode.TagName;
+                        toolTipHdr.BackColor = Color.Yellow;
+                        toolTipHdr.SetToolTip(textBReq, reqTraceNode.TagName);
                         tabPageTree.Controls.Add(textBReq);
 
                         textBReq = new TextBox();
@@ -252,6 +284,7 @@ namespace ReqDBBrowser
                         textBReq.Size = sizeText;
                         textBReq.Multiline = true;
                         textBReq.ReadOnly = true;
+                        textBReq.ScrollBars = ScrollBars.Vertical;
                         textBReq.Text = reqTraceNode.Text;
                         tabPageTree.Controls.Add(textBReq);
                         reqTraceNode.GetTraceToCoord (out nTraceToX, out nTraceToY);
@@ -306,7 +339,7 @@ namespace ReqDBBrowser
             genTable.Show();
         }
 
-        private void ShowRequirementsLog(ArrayList arrKeys)
+        private void ShowRequirementsLog(ArrayList arrKeys, string strTreePathName)
         {
             ReqProRequirementPrx rpxReq;
             FormGenericTable genTable;
@@ -321,7 +354,7 @@ namespace ReqDBBrowser
             listTag = new List<string>();
             listName = new List<string>();
 
-            genTable = new FormGenericTable("Log - Package: " + "???", null, null);
+            genTable = new FormGenericTable("Log - Package: " + strTreePathName, null, null);
 
             foreach (int nKey in arrKeys)
             {
@@ -382,6 +415,10 @@ namespace ReqDBBrowser
         private void toolStripButtonRefresh_Click(object sender, EventArgs e)
         {
             Cursor = Cursors.WaitCursor;
+
+            formProgressReqTree = new FormProgressReqTree();
+            formProgressReqTree.Show();
+
             CleanupViews();
             Cursor = Cursors.Default;
             CreateReqTree();
@@ -428,7 +465,7 @@ namespace ReqDBBrowser
                     {
                         ArrayList arrReq = new ArrayList();
                         arrReq.Add(nKey);
-                        DoRequirementTraces(arrReq);
+                        DoRequirementTraces(arrReq, "");
                         bDoImplicitSelect = true;
                     }
                     break;
@@ -452,17 +489,18 @@ namespace ReqDBBrowser
         }
 
         public bool PkgMenuAction(ArrayList arrReqKeys, ArrayList arrOtherKeys,
-            int nMenuItem, string strMenuText)
+            int nMenuItem, string strMenuText, string strTreePathName)
         {
             bool bDoImplicitSelect = false;
+
             switch (nMenuItem)
             {
                 case 0:
-                    DoRequirementTraces(arrReqKeys);
+                    DoRequirementTraces(arrReqKeys, strTreePathName);
                     bDoImplicitSelect = true;
                     break;
                 case 1:
-                    ShowRequirementsLog(arrReqKeys);
+                    ShowRequirementsLog(arrReqKeys, strTreePathName);
                     break;
                 default:
                     MessageBox.Show("Package " + strMenuText + " not yet implemented");

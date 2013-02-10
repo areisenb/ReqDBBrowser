@@ -92,6 +92,12 @@
     <Compile Include="formOpenProject.Designer.cs">
       <DependentUpon>formOpenProject.cs</DependentUpon>
     </Compile>
+    <Compile Include="FormRequestCredentials.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormRequestCredentials.Designer.cs">
+      <DependentUpon>FormRequestCredentials.cs</DependentUpon>
+    </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="FormGenericTable.resx">
@@ -117,6 +123,10 @@
     <EmbeddedResource Include="formOpenProject.resx">
       <SubType>Designer</SubType>
       <DependentUpon>formOpenProject.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FormRequestCredentials.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>FormRequestCredentials.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
@@ -147,6 +157,7 @@
     <Compile Include="ReqTraceUI.cs" />
     <Compile Include="ReqTreeNode.cs" />
     <Compile Include="ReqUIBox.cs" />
+    <Compile Include="Tracer.cs" />
     <Compile Include="TreeViewReq.cs">
       <SubType>Component</SubType>
     </Compile>
