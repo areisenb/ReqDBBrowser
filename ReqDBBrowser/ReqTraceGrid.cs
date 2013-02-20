@@ -15,6 +15,8 @@ namespace ReqDBBrowser
             int nTraceToCount;
             ulong ulDegreeRel;
 
+            eTraceAbortReason eAbort;
+
             int x;
             int y;
             System.Collections.Generic.Dictionary<int, ReqTraceNode> dictReqKey;
@@ -62,6 +64,13 @@ namespace ReqDBBrowser
                 this.ulDegreeRel = ulDegreeRel;
                 x = int.MinValue;
                 y = int.MinValue;
+                eAbort = eTraceAbortReason.eNoAbort;
+            }
+
+            public eTraceAbortReason AbortReason
+            {
+                set { this.eAbort = value; }
+                get { return this.eAbort; }
             }
 
             public void SetRelDegree(ulong ulDegreeRel)
@@ -72,19 +81,29 @@ namespace ReqDBBrowser
 
             public string GetTraceToString()
             {
-                return GetTraceString(aReqProReqPrxTracesTo, nTraceToCount);
+                string strRet="";
+                if ((eAbort & eTraceAbortReason.eMaxToLevelReached) != 0)
+                    strRet+= "\r\n<Level Reached>";
+                if ((eAbort & eTraceAbortReason.eMaxToHopsExceeded) != 0)
+                    strRet+="\r\n<Hops Exceeded>";
+                return GetTraceString(aReqProReqPrxTracesTo, nTraceToCount)+strRet;
             }
 
             public string GetTraceFromString()
             {
-                return GetTraceString(aReqProReqPrxTracesFrom, nTraceFromCount);
+                string strRet = "";
+                if ((eAbort & eTraceAbortReason.eMaxFromLevelReached) != 0)
+                    strRet += "\r\n<Level Reached>";
+                if ((eAbort & eTraceAbortReason.eMaxFromHopsExceeded) != 0)
+                    strRet += "\r\n<Hops Exceeded>";
+                return GetTraceString(aReqProReqPrxTracesFrom, nTraceFromCount)+strRet;
             }
 
             private static string GetTraceString(ReqProRequirementPrx[] aReqProReqPrxTraces, int nTraceCount)
             {
                 string strRet;
                 if ((aReqProReqPrxTraces.GetLength (0) == 0) && (nTraceCount > 0))
-                    strRet = "(" + nTraceCount + ")\n"; 
+                    strRet = "(" + nTraceCount + " REQs)\n"; 
                 else
                     strRet = "";
                 foreach (ReqProRequirementPrx reqReqPrx in aReqProReqPrxTraces)
@@ -128,6 +147,21 @@ namespace ReqDBBrowser
                     }
                 }
             }
+
+            public int AreTooManyTracesTo()
+            {
+                if ((eAbort & eTraceAbortReason.eTooManyTracesTo) != 0)
+                    return nTraceToCount;
+                return 0;
+            }
+
+            public int AreTooManyTracesFrom()
+            {
+                if ((eAbort & eTraceAbortReason.eTooManyTracesFrom) != 0)
+                    return nTraceFromCount;
+                return 0;
+            }
+
         }
 
         int nMaxLevelTo;
@@ -217,56 +251,65 @@ namespace ReqDBBrowser
 
             showProgressReqTraceGrid(0, 1, "Adding: " + reqTraceNode.Tag);
 
-            if ((aTracesFrom.GetLength(0) > 0) && (nTraceLevel < this.nMaxLevelFrom))
-                if (nTraceFromHopCount < this.nMaxFromTraceHops)
-                {
-                    int nNextTraceFromHopCount = nTraceFromHopCount;
-                    ulong ulLocOffset = ulDegreeOffset * ulLevelMultiplier;
-                    showProgressReqTraceGrid(aTracesFrom.GetLength(0), 0, null);
-                    foreach (ReqProRequirementPrx reqReqPrxFrom in aTracesFrom)
-                        if (dictReqKey.ContainsKey(reqReqPrxFrom.Key))
-                        {
-                            ReqTraceNode reqTN = dictReqKey[reqReqPrxFrom.Key];
-                            reqTN.SetRelDegree(ulLocOffset);
-                        }
-                        else
-                        {
-                            ulLocOffset += ulDegreeInc;
-                            AddReq(reqReqPrxFrom, nTraceLevel + 1, ++nNextTraceFromHopCount, nTraceToHopCount,
-                                ulLocOffset);
-                        }
-                }
+            if (aTracesFrom.GetLength(0) > 0)
+                if (nTraceLevel < this.nMaxLevelFrom)
+                    if (nTraceFromHopCount < this.nMaxFromTraceHops)
+                    {
+                        int nNextTraceFromHopCount = nTraceFromHopCount;
+                        ulong ulLocOffset = ulDegreeOffset * ulLevelMultiplier;
+                        showProgressReqTraceGrid(aTracesFrom.GetLength(0), 0, null);
+                        foreach (ReqProRequirementPrx reqReqPrxFrom in aTracesFrom)
+                            if (dictReqKey.ContainsKey(reqReqPrxFrom.Key))
+                            {
+                                ReqTraceNode reqTN = dictReqKey[reqReqPrxFrom.Key];
+                                reqTN.SetRelDegree(ulLocOffset);
+                            }
+                            else
+                            {
+                                ulLocOffset += ulDegreeInc;
+                                AddReq(reqReqPrxFrom, nTraceLevel + 1, ++nNextTraceFromHopCount, nTraceToHopCount,
+                                    ulLocOffset);
+                            }
+                    }
+                    else
+                    {
+                        System.Diagnostics.Trace.WriteLine("From Hops exceeded at: " + reqReqPrx.TagName);
+                        showProgressReqTraceGrid(0, 0, "tracing from hops exceeded at: " + reqTraceNode.Tag);
+                        eAbort |= ReqProRequirementPrx.eTraceAbortReason.eMaxFromHopsExceeded;
+                    }
                 else
-                {
-                    System.Diagnostics.Trace.WriteLine("From Hops exceeded at: " + reqReqPrx.TagName);
-                    showProgressReqTraceGrid(0, 0, "tracing from hops exceeded at: " + reqTraceNode.Tag);
-                }
+                    eAbort |= ReqProRequirementPrx.eTraceAbortReason.eMaxFromLevelReached;
 
 
-            if ((aTracesTo.GetLength(0) > 0) && (nTraceLevel > -this.nMaxLevelTo))
-                if (++nTraceToHopCount <= this.nMaxToTraceHops)
-                {
-                    int nNextTraceToHopCount = nTraceToHopCount;
-                    ulong ulLocOffset = ulDegreeOffset;
-                    showProgressReqTraceGrid(aTracesTo.GetLength(0), 0, null);
-                    foreach (ReqProRequirementPrx reqReqPrxTo in aTracesTo)
-                        if (dictReqKey.ContainsKey(reqReqPrxTo.Key))
-                        {
-                            ReqTraceNode reqTN = dictReqKey[reqReqPrxTo.Key];
-                            reqTN.SetRelDegree(ulLocOffset);
-                        }
-                        else
-                        {
-                            ulLocOffset += ulDegreeInc;
-                            AddReq(reqReqPrxTo, nTraceLevel - 1, nTraceFromHopCount, nTraceToHopCount, ulLocOffset);
-                        }
-                }
+            if (aTracesTo.GetLength(0) > 0)
+                if (nTraceLevel > -this.nMaxLevelTo)
+                    if (++nTraceToHopCount <= this.nMaxToTraceHops)
+                    {
+                        int nNextTraceToHopCount = nTraceToHopCount;
+                        ulong ulLocOffset = ulDegreeOffset;
+                        showProgressReqTraceGrid(aTracesTo.GetLength(0), 0, null);
+                        foreach (ReqProRequirementPrx reqReqPrxTo in aTracesTo)
+                            if (dictReqKey.ContainsKey(reqReqPrxTo.Key))
+                            {
+                                ReqTraceNode reqTN = dictReqKey[reqReqPrxTo.Key];
+                                reqTN.SetRelDegree(ulLocOffset);
+                            }
+                            else
+                            {
+                                ulLocOffset += ulDegreeInc;
+                                AddReq(reqReqPrxTo, nTraceLevel - 1, nTraceFromHopCount, nTraceToHopCount, ulLocOffset);
+                            }
+                    }
+                    else
+                    {
+
+                        System.Diagnostics.Trace.WriteLine("To Hops exceeded at: " + reqReqPrx.TagName);
+                        showProgressReqTraceGrid(0, 0, "tracing to exceeded at: " + reqTraceNode.Tag);
+                        eAbort |= ReqProRequirementPrx.eTraceAbortReason.eMaxToHopsExceeded;
+                    }
                 else
-                {
-
-                    System.Diagnostics.Trace.WriteLine("To Hops exceeded at: " + reqReqPrx.TagName);
-                    showProgressReqTraceGrid(0, 0, "tracing to exceeded at: " + reqTraceNode.Tag);
-                }
+                    eAbort |= ReqProRequirementPrx.eTraceAbortReason.eMaxToLevelReached;
+            reqTraceNode.AbortReason = eAbort;
         }
 
         public int GetElementCount(int nLevel)

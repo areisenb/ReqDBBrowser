@@ -6,8 +6,11 @@ using System.Drawing.Drawing2D;
 
 namespace ReqDBBrowser
 {
-    abstract class ReqTraceUI
+    class ReqTraceUIArrowDwn: ReqTraceUIArrow
     {
-        public abstract void Draw(Graphics gr, Point pOffset);
+
+        public ReqTraceUIArrowDwn(int nTraces, int nX, int nY): base (nTraces, nX, nY, true)
+        {
+        }
     }
 }

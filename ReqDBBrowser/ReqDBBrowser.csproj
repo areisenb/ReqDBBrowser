@@ -155,6 +155,10 @@
     <Compile Include="ReqProRequirementPrx.cs" />
     <Compile Include="ReqTraceGrid.cs" />
     <Compile Include="ReqTraceUI.cs" />
+    <Compile Include="ReqTraceUITraceArrow.cs" />
+    <Compile Include="ReqTraceUIArrow.cs" />
+    <Compile Include="ReqTraceUIArrowDwn.cs" />
+    <Compile Include="ReqTraceUIArrowUp.cs" />
     <Compile Include="ReqTreeNode.cs" />
     <Compile Include="ReqUIBox.cs" />
     <Compile Include="Tracer.cs" />

@@ -251,6 +251,7 @@ namespace ReqDBBrowser
             Size sizeTagName;
             int [] nTraceToX;
             int [] nTraceToY;
+            int nTraces;
 
             sizeText = new Size(200, 100);
             sizeTagName = new Size(200, 20);
@@ -270,7 +271,7 @@ namespace ReqDBBrowser
                         toolTipHdr = new ToolTip();
                         
                         textBReq = new TextBox();
-                        textBReq.Location = new Point(k * nXSpacing, j * nYSpacing);
+                        textBReq.Location = new Point(k * nXSpacing + nXSpacing/2, j * nYSpacing + nYSpacing/2);
                         textBReq.Size = sizeTagName;
                         textBReq.Multiline = true;
                         textBReq.ReadOnly = true;
@@ -280,7 +281,7 @@ namespace ReqDBBrowser
                         tabPageTree.Controls.Add(textBReq);
 
                         textBReq = new TextBox();
-                        textBReq.Location = new Point(k * nXSpacing, j * nYSpacing + sizeTagName.Height);
+                        textBReq.Location = new Point(k * nXSpacing + nXSpacing/2, j * nYSpacing + sizeTagName.Height + nYSpacing/2);
                         textBReq.Size = sizeText;
                         textBReq.Multiline = true;
                         textBReq.ReadOnly = true;
@@ -288,13 +289,26 @@ namespace ReqDBBrowser
                         textBReq.Text = reqTraceNode.Text;
                         tabPageTree.Controls.Add(textBReq);
                         reqTraceNode.GetTraceToCoord (out nTraceToX, out nTraceToY);
+                        
+                        nTraces = reqTraceNode.AreTooManyTracesFrom();
+                        if (nTraces > 0)
+                            arrTraceDwg.Insert (0, new ReqTraceUIArrowDwn (nTraces, 
+                                k * nXSpacing + nXSpacing/2 + sizeTagName.Width/2, 
+                                j * nYSpacing + nYSpacing/2));
+
+                        nTraces = reqTraceNode.AreTooManyTracesTo();
+                        if (nTraces > 0)
+                            arrTraceDwg.Insert(0, new ReqTraceUIArrowUp (nTraces,
+                                k * nXSpacing + nXSpacing / 2 + sizeTagName.Width / 2,
+                                j * nYSpacing + sizeTagName.Height + sizeText.Height + nYSpacing / 2));
+
                         for (int l = nTraceToX.GetLength(0)-1; l >= 0; l--)
                             if ((nTraceToX[l] != int.MinValue) && (reqTraceNode.X != int.MinValue))
-                                arrTraceDwg.Add (new ReqTraceUI (
-                                    reqTraceNode.X * nXSpacing + sizeText.Width / 2,
-                                    (nUpCount - reqTraceNode.Y) * nYSpacing + sizeTagName.Height + sizeText.Height,
-                                    nTraceToX[l] * nXSpacing + sizeText.Width / 2,
-                                    (nUpCount - nTraceToY[l]) * nYSpacing));
+                                arrTraceDwg.Add (new ReqTraceUITraceArrow (
+                                    reqTraceNode.X * nXSpacing + sizeText.Width / 2 + nXSpacing/2,
+                                    (nUpCount - reqTraceNode.Y) * nYSpacing + sizeTagName.Height + sizeText.Height + nYSpacing/2,
+                                    nTraceToX[l] * nXSpacing + sizeText.Width / 2 + nXSpacing/2,
+                                    (nUpCount - nTraceToY[l]) * nYSpacing + nYSpacing/2));
                     }
                 }
         }

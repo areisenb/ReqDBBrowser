@@ -25,7 +25,9 @@ namespace ReqDBBrowser
             eTooManyTracesFrom =    0x0002,
             eTooManyTracesTo =      0x0004,
             eMaxFromLevelReached =  0x0008,
-            eMaxToLevelReached =    0x0010
+            eMaxToLevelReached =    0x0010,
+            eMaxFromHopsExceeded =  0x0020,
+            eMaxToHopsExceeded =    0x0040
         }
 
         public struct sHistEntry
