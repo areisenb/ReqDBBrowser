@@ -9,7 +9,8 @@ namespace ReqDBBrowser
     class ReqTraceUIArrowDwn: ReqTraceUIArrow
     {
 
-        public ReqTraceUIArrowDwn(int nTraces, int nX, int nY): base (nTraces, nX, nY, true)
+        public ReqTraceUIArrowDwn(int nTraces, bool bAdditionalTraces, int nX, int nY): 
+            base (nTraces, bAdditionalTraces, nX, nY, true)
         {
         }
     }

@@ -14,10 +14,9 @@ namespace ReqDBBrowser
         TreeViewReq treeViewRq;
         ReqProProject reqDBBrowser;
 
-        DataGridView dataGridReq;
+        ReqTraceUIDataGridView dataGridReq;
         ReqTraceGrid reqTraceGrid;
         ArrayList arrTraceDwg;
-        int oldTabPageTableWidth;
         FormProgressReqTree formProgressReqTree;
 
         public FormMain()
@@ -174,52 +173,19 @@ namespace ReqDBBrowser
 
         void PrepareDataGrid()
         {
-            DataGridView dataGridOld = null;
+            ReqTraceUIDataGridView dataGridOld = null;
 
             if (dataGridReq != null)
             {
                 dataGridOld = dataGridReq;
                 tabPageTable.Controls.Remove(dataGridReq);
             }
-
-            dataGridReq = new DataGridView();
+            dataGridReq = new ReqTraceUIDataGridView(tabPageTable.Size.Width, dataGridOld);
             tabPageTable.Controls.Add(dataGridReq);
-
-            dataGridReq.ColumnCount = 4;
-            dataGridReq.Location = new Point(0, 0);
-            dataGridReq.Dock = DockStyle.Fill;
-            dataGridReq.AllowUserToAddRows = false;
-            dataGridReq.AllowUserToDeleteRows = false;
-
-            int nWidth = tabPageTable.Size.Width - dataGridReq.RowHeadersWidth;
-
-            dataGridReq.Columns[0].Name = "Name";
-            dataGridReq.Columns[0].DefaultCellStyle.WrapMode = DataGridViewTriState.True;
-            dataGridReq.Columns[0].Width = nWidth / 10;
-            dataGridReq.Columns[1].Name = "Text";
-            dataGridReq.Columns[1].DefaultCellStyle.WrapMode = DataGridViewTriState.True;
-            dataGridReq.Columns[1].Width = nWidth / 2;
-            dataGridReq.Columns[2].Name = "Trace to";
-            dataGridReq.Columns[2].DefaultCellStyle.WrapMode = DataGridViewTriState.True;
-            dataGridReq.Columns[2].Width = nWidth / 5;
-            dataGridReq.Columns[3].Name = "Trace from";
-            dataGridReq.Columns[3].DefaultCellStyle.WrapMode = DataGridViewTriState.True;
-            dataGridReq.Columns[3].Width = nWidth / 5;
-
-            if (dataGridOld != null)
-            {
-                for (int i = 0; i < 4; i++)
-                    dataGridReq.Columns[i].Width = dataGridOld.Columns[i].Width;
-            }
-
-            DataGridViewRow row = dataGridReq.RowTemplate;
-            row.Height = dataGridReq.Font.Height * 11/2;
-
         }
 
         void PopulateDataGrid(int nUpCount, int nDownCount)
         {
-            string[] astrReq;
             ReqTraceGrid.ReqTraceNode reqTraceNode;
 
             for (int i = nUpCount; i >= -nDownCount; i--)
@@ -227,17 +193,9 @@ namespace ReqDBBrowser
                 {
                     reqTraceNode = reqTraceGrid[i, j];
                     if (reqTraceNode != null)
-                    {
-                        astrReq = new string[] 
-                            {
-                                reqTraceNode.TagName,
-                                reqTraceNode.Text,
-                                reqTraceNode.GetTraceToString (),
-                                reqTraceNode.GetTraceFromString()
-                            };
-                        dataGridReq.Rows.Add(astrReq);
-                    }
+                        dataGridReq.AddRow(reqTraceNode);
                 }
+            dataGridReq.Populated();
         }
 
         void PopulateGraph(int nUpCount, int nDownCount)
@@ -252,6 +210,7 @@ namespace ReqDBBrowser
             int [] nTraceToX;
             int [] nTraceToY;
             int nTraces;
+            bool bAdditionalTraces;
 
             sizeText = new Size(200, 100);
             sizeTagName = new Size(200, 20);
@@ -290,15 +249,13 @@ namespace ReqDBBrowser
                         tabPageTree.Controls.Add(textBReq);
                         reqTraceNode.GetTraceToCoord (out nTraceToX, out nTraceToY);
                         
-                        nTraces = reqTraceNode.AreTooManyTracesFrom();
-                        if (nTraces > 0)
-                            arrTraceDwg.Insert (0, new ReqTraceUIArrowDwn (nTraces, 
+                        if (reqTraceNode.AreTooManyTracesFrom(out nTraces, out bAdditionalTraces))
+                            arrTraceDwg.Insert (0, new ReqTraceUIArrowDwn (nTraces, bAdditionalTraces, 
                                 k * nXSpacing + nXSpacing/2 + sizeTagName.Width/2, 
                                 j * nYSpacing + nYSpacing/2));
 
-                        nTraces = reqTraceNode.AreTooManyTracesTo();
-                        if (nTraces > 0)
-                            arrTraceDwg.Insert(0, new ReqTraceUIArrowUp (nTraces,
+                        if (reqTraceNode.AreTooManyTracesTo(out nTraces, out bAdditionalTraces))
+                            arrTraceDwg.Insert(0, new ReqTraceUIArrowUp (nTraces, bAdditionalTraces,
                                 k * nXSpacing + nXSpacing / 2 + sizeTagName.Width / 2,
                                 j * nYSpacing + sizeTagName.Height + sizeText.Height + nYSpacing / 2));
 
@@ -441,23 +398,7 @@ namespace ReqDBBrowser
         private void tabDetails_SizeChanged(object sender, EventArgs e)
         {
             if (dataGridReq != null)
-            {
-                int nInc = tabPageTable.Size.Width - dataGridReq.RowHeadersWidth - oldTabPageTableWidth;
-                if (nInc > 0)
-                {
-                    int nOldWidth = 0;
-                    for (int i=0; i<dataGridReq.Columns.Count; i++)
-                        nOldWidth += dataGridReq.Columns[i].Width;
-                    if (nOldWidth < oldTabPageTableWidth)
-                    {
-                        dataGridReq.Columns[1].Width += nInc / 2;
-                        dataGridReq.Columns[0].Width += nInc / 10;
-                        dataGridReq.Columns[2].Width += nInc / 5;
-                        dataGridReq.Columns[3].Width += nInc / 5;
-                    }
-                }
-                oldTabPageTableWidth = tabPageTable.Size.Width - dataGridReq.RowHeadersWidth;
-            }
+                dataGridReq.ParentSizeChanged(tabPageTable.Size.Width);
         }
 
         /* from TreeViewReq.ITreeViewReqCb */

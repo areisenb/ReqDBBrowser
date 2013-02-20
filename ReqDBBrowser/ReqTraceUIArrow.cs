@@ -11,11 +11,13 @@ namespace ReqDBBrowser
         const int nWidth = 30;
         const int nLength = 30;
         int nTraces;
+        bool bAdditionalTraces;
         Point [] arrPoint;
 
-        public ReqTraceUIArrow(int nTraces, int nX, int nY, bool bIsTip)
+        public ReqTraceUIArrow(int nTraces, bool bAdditionalTraces, int nX, int nY, bool bIsTip)
         {
             this.nTraces = nTraces;
+            this.bAdditionalTraces = bAdditionalTraces;
             arrPoint = new Point[7];
 
             if (bIsTip)
@@ -32,6 +34,7 @@ namespace ReqDBBrowser
 
         public override void Draw(Graphics gr, Point pOffset)
         {
+            string strCaption;
             gr.SmoothingMode = SmoothingMode.HighQuality;
             SolidBrush brush = new SolidBrush(Color.LightBlue);
             SolidBrush brText = new SolidBrush(Color.Black);
@@ -43,7 +46,11 @@ namespace ReqDBBrowser
                     new Point (arrPoint[i].X + pOffset.X, arrPoint[i].Y + pOffset.Y);
 
             gr.FillPolygon(brush, arrDrwPoint, fm);
-            gr.DrawString(nTraces.ToString()+" RQ", System.Drawing.SystemFonts.DialogFont, brText, arrDrwPoint[1]);
+
+            strCaption = nTraces.ToString() + " REQs";
+            if (bAdditionalTraces)
+                strCaption = "+" + strCaption;
+            gr.DrawString(strCaption, System.Drawing.SystemFonts.DialogFont, brText, arrDrwPoint[1]);
 
             brText.Dispose();
             brush.Dispose();

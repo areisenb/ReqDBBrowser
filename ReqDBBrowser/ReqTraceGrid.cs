@@ -14,6 +14,7 @@ namespace ReqDBBrowser
             int nTraceFromCount;
             int nTraceToCount;
             ulong ulDegreeRel;
+            bool bIsRootNode;
 
             eTraceAbortReason eAbort;
 
@@ -52,11 +53,12 @@ namespace ReqDBBrowser
                 }
             }
 
-            public ReqTraceNode(ReqProRequirementPrx reqProReqPrx, ulong ulDegreeRel,
+            public ReqTraceNode(ReqProRequirementPrx reqProReqPrx, ulong ulDegreeRel, bool bIsRootNode,
                 ReqProRequirementPrx[] aReqProReqPrxTracesFrom, ReqProRequirementPrx[] aReqProReqPrxTracesTo,
-                int nTraceFromCount, int nTraceToCount)
+                int nTraceFromCount, int nTraceToCount, eTraceAbortReason eAbort)
                 : base(reqProReqPrx)
             {
+                this.bIsRootNode = bIsRootNode;
                 this.aReqProReqPrxTracesFrom = aReqProReqPrxTracesFrom;
                 this.aReqProReqPrxTracesTo = aReqProReqPrxTracesTo;
                 this.nTraceFromCount = nTraceFromCount;
@@ -64,7 +66,7 @@ namespace ReqDBBrowser
                 this.ulDegreeRel = ulDegreeRel;
                 x = int.MinValue;
                 y = int.MinValue;
-                eAbort = eTraceAbortReason.eNoAbort;
+                this.eAbort = eAbort;
             }
 
             public eTraceAbortReason AbortReason
@@ -79,36 +81,68 @@ namespace ReqDBBrowser
                     this.ulDegreeRel = ulDegreeRel;
             }
 
-            public string GetTraceToString()
+            public void AddTraceTo(ReqProRequirementPrx reqReqPrxTraceTo)
             {
-                string strRet="";
+                int nTraceToCountEnumerated = aReqProReqPrxTracesTo.GetLength(0);
+                if (nTraceToCount != nTraceToCountEnumerated)
+                {
+                    /* just if we have already satured the Traces to - the number already contains all traces */
+                    ReqProRequirementPrx[] aReqProReqPrxTracesToOld;
+                    aReqProReqPrxTracesToOld = aReqProReqPrxTracesTo;
+
+                    aReqProReqPrxTracesTo = new ReqProRequirementPrx[nTraceToCountEnumerated + 1];
+                    for (int i = 0; i < nTraceToCountEnumerated; i++)
+                        aReqProReqPrxTracesTo[i] = aReqProReqPrxTracesToOld[i];
+                    aReqProReqPrxTracesTo[nTraceToCountEnumerated] = reqReqPrxTraceTo;
+                }
+            }
+
+            public void AddTraceFrom(ReqProRequirementPrx reqReqPrxTraceFrom)
+            {
+                int nTraceFromCountEnumerated = aReqProReqPrxTracesFrom.GetLength(0);
+                if (nTraceFromCount != nTraceFromCountEnumerated)
+                {
+                    /* just if we have already satured the Traces to - the number already contains all traces */
+                    ReqProRequirementPrx[] aReqProReqPrxTracesFromOld;
+                    aReqProReqPrxTracesFromOld = aReqProReqPrxTracesFrom;
+
+                    aReqProReqPrxTracesFrom = new ReqProRequirementPrx[nTraceFromCountEnumerated + 1];
+                    for (int i = 0; i < nTraceFromCountEnumerated; i++)
+                        aReqProReqPrxTracesFrom[i] = aReqProReqPrxTracesFromOld[i];
+                    aReqProReqPrxTracesFrom[nTraceFromCountEnumerated] = reqReqPrxTraceFrom;
+                }
+            }
+
+            public void GetTraceToString(out List<string> arrString)
+            {
+                GetTraceString (aReqProReqPrxTracesTo, nTraceToCount, out arrString);
                 if ((eAbort & eTraceAbortReason.eMaxToLevelReached) != 0)
-                    strRet+= "\r\n<Level Reached>";
+                    arrString.Add ("<Level Reached>");
                 if ((eAbort & eTraceAbortReason.eMaxToHopsExceeded) != 0)
-                    strRet+="\r\n<Hops Exceeded>";
-                return GetTraceString(aReqProReqPrxTracesTo, nTraceToCount)+strRet;
+                    arrString.Add("<Hops Exceeded>");
             }
 
-            public string GetTraceFromString()
+            public void GetTraceFromString(out List<string> arrString)
             {
-                string strRet = "";
+                GetTraceString(aReqProReqPrxTracesFrom, nTraceFromCount, out arrString);
                 if ((eAbort & eTraceAbortReason.eMaxFromLevelReached) != 0)
-                    strRet += "\r\n<Level Reached>";
+                    arrString.Add("<Level Reached>");
                 if ((eAbort & eTraceAbortReason.eMaxFromHopsExceeded) != 0)
-                    strRet += "\r\n<Hops Exceeded>";
-                return GetTraceString(aReqProReqPrxTracesFrom, nTraceFromCount)+strRet;
+                    arrString.Add("<Hops Exceeded>");
             }
 
-            private static string GetTraceString(ReqProRequirementPrx[] aReqProReqPrxTraces, int nTraceCount)
+            private static void GetTraceString(ReqProRequirementPrx[] aReqProReqPrxTraces, 
+                int nTraceCount, out List<string> arrString)
             {
-                string strRet;
-                if ((aReqProReqPrxTraces.GetLength (0) == 0) && (nTraceCount > 0))
-                    strRet = "(" + nTraceCount + " REQs)\n"; 
-                else
-                    strRet = "";
+                arrString = new List<string>();
+
                 foreach (ReqProRequirementPrx reqReqPrx in aReqProReqPrxTraces)
-                    strRet += reqReqPrx.Tag + "\n";
-                return strRet;
+                    arrString.Add(reqReqPrx.Tag);
+                if (aReqProReqPrxTraces.GetLength(0) != nTraceCount)
+                    if (aReqProReqPrxTraces.GetLength(0) == 0)
+                        arrString.Add("(" + nTraceCount + " REQs)");  
+                    else
+                        arrString.Add("( +" + (nTraceCount-aReqProReqPrxTraces.GetLength(0)) + " REQs)");
             }
 
             public void SetCoordinates (int x, int y, Dictionary<int, ReqTraceNode> dict)
@@ -122,6 +156,14 @@ namespace ReqDBBrowser
             { get { return x; } }
             public int Y
             { get { return y; } }
+
+            public bool IsRootNode
+            { get { return bIsRootNode; } }
+
+            public void MakeRootNode()
+            {
+                bIsRootNode = true;
+            }
 
             public void GetTraceToCoord(out int[] x, out int[] y)
             {
@@ -148,18 +190,18 @@ namespace ReqDBBrowser
                 }
             }
 
-            public int AreTooManyTracesTo()
+            public bool AreTooManyTracesTo(out int nAdditionalTraces, out bool bAdditionals)
             {
-                if ((eAbort & eTraceAbortReason.eTooManyTracesTo) != 0)
-                    return nTraceToCount;
-                return 0;
+                nAdditionalTraces = nTraceToCount - aReqProReqPrxTracesTo.GetLength(0);
+                bAdditionals = (aReqProReqPrxTracesTo.GetLength(0) != 0);
+                return ((eAbort & eTraceAbortReason.eTooManyTracesTo) != 0);
             }
 
-            public int AreTooManyTracesFrom()
+            public bool AreTooManyTracesFrom(out int nAdditionalTraces, out bool bAdditionals)
             {
-                if ((eAbort & eTraceAbortReason.eTooManyTracesFrom) != 0)
-                    return nTraceFromCount;
-                return 0;
+                nAdditionalTraces = nTraceFromCount - aReqProReqPrxTracesFrom.GetLength(0);
+                bAdditionals = (aReqProReqPrxTracesFrom.GetLength(0) != 0);
+                return ((eAbort & eTraceAbortReason.eTooManyTracesFrom) != 0);
             }
 
         }
@@ -200,7 +242,7 @@ namespace ReqDBBrowser
 
             foreach (ReqProRequirementPrx reqReqPrx in arrReqPrx)
             {
-                AddReq(reqReqPrx, 0, 0, 0, ulRelDegree);
+                AddReq(reqReqPrx, 0, 0, 0, ulRelDegree, null);
                 ulRelDegree += 10000;
             }
 
@@ -223,10 +265,19 @@ namespace ReqDBBrowser
         }
 
         private void AddReq(ReqProRequirementPrx reqReqPrx, 
-            int nTraceLevel, int nTraceFromHopCount, int nTraceToHopCount, ulong ulDegreeOffset)
+            int nTraceLevel, int nTraceFromHopCount, int nTraceToHopCount, ulong ulDegreeOffset, 
+            ReqProRequirementPrx reqReqPrxTracesPreceder)
         {
+            ReqTraceNode reqTraceNode;
             if (dictReqKey.ContainsKey (reqReqPrx.Key))
+            {
+                if (reqReqPrxTracesPreceder == null)
+                {
+                    reqTraceNode = dictReqKey[reqReqPrx.Key];
+                    reqTraceNode.MakeRootNode();
+                }
                 return;
+            }
 
             ReqProRequirementPrx.eTraceAbortReason eAbort = ReqProRequirementPrx.eTraceAbortReason.eNoAbort;
             int nTracesTo;
@@ -234,17 +285,17 @@ namespace ReqDBBrowser
             ReqProRequirementPrx[] aTracesTo;
             ReqProRequirementPrx[] aTracesFrom;
             ulong ulDegreeInc = 1UL;
-            ReqTraceNode reqTraceNode;
             
             for (int i=0; i<(nTraceLevel+nMaxLevelTo); i++)
                 ulDegreeInc *= ulLevelMultiplier * ((ulong)nTraceLevel + (ulong)nMaxLevelTo);
 
             Tracer tracer = new Tracer("Traces from/to Req " + reqReqPrx.Tag);
-            aTracesTo = reqReqPrx.GetRequirementTracesTo(nMaxTraceCount, ref eAbort, out nTracesTo);
-            aTracesFrom = reqReqPrx.GetRequirementTracesFrom(nMaxTraceCount, ref eAbort, out nTracesFrom);
+            aTracesTo = reqReqPrx.GetRequirementTracesTo(nMaxTraceCount, ref eAbort, out nTracesTo, reqReqPrxTracesPreceder);
+            aTracesFrom = reqReqPrx.GetRequirementTracesFrom(nMaxTraceCount, ref eAbort, out nTracesFrom, reqReqPrxTracesPreceder);
             tracer.Stop("Traces from/to Req " + reqReqPrx.Tag);
 
-            reqTraceNode = new ReqTraceNode(reqReqPrx, ulDegreeOffset, aTracesFrom, aTracesTo, nTracesFrom, nTracesTo);
+            reqTraceNode = new ReqTraceNode(reqReqPrx, ulDegreeOffset, reqReqPrxTracesPreceder == null, 
+                aTracesFrom, aTracesTo, nTracesFrom, nTracesTo, eAbort);
             dictReqKey.Add(reqReqPrx.Key, reqTraceNode);
 
             grid[TraceLevel2Index(nTraceLevel)].Add(reqTraceNode);
@@ -263,12 +314,13 @@ namespace ReqDBBrowser
                             {
                                 ReqTraceNode reqTN = dictReqKey[reqReqPrxFrom.Key];
                                 reqTN.SetRelDegree(ulLocOffset);
+                                reqTN.AddTraceTo(reqReqPrx);
                             }
                             else
                             {
                                 ulLocOffset += ulDegreeInc;
                                 AddReq(reqReqPrxFrom, nTraceLevel + 1, ++nNextTraceFromHopCount, nTraceToHopCount,
-                                    ulLocOffset);
+                                    ulLocOffset, reqReqPrx);
                             }
                     }
                     else
@@ -293,11 +345,13 @@ namespace ReqDBBrowser
                             {
                                 ReqTraceNode reqTN = dictReqKey[reqReqPrxTo.Key];
                                 reqTN.SetRelDegree(ulLocOffset);
+                                reqTN.AddTraceFrom(reqReqPrx);
                             }
                             else
                             {
                                 ulLocOffset += ulDegreeInc;
-                                AddReq(reqReqPrxTo, nTraceLevel - 1, nTraceFromHopCount, nTraceToHopCount, ulLocOffset);
+                                AddReq(reqReqPrxTo, nTraceLevel - 1, nTraceFromHopCount, nTraceToHopCount,
+                                    ulLocOffset, reqReqPrx);
                             }
                     }
                     else
