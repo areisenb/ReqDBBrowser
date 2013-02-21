@@ -195,7 +195,6 @@ namespace ReqDBBrowser
                     if (reqTraceNode != null)
                         dataGridReq.AddRow(reqTraceNode);
                 }
-            dataGridReq.Populated();
         }
 
         void PopulateGraph(int nUpCount, int nDownCount)

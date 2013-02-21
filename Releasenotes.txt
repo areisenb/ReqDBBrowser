@@ -1,7 +1,10 @@
+2013-02-21
+Bugfix: TraceTable sortability repaired
+
 2013-02-20
 Usability: added clickable Traces to table view
 Usability: indicate "root" requirements with pane green background
-Bug introduced: Sortability gone lost - sort does not reorder traces to and from
+Bug introduced: TraceTable sortability gone lost - sort does not reorder traces to and from
 
 2013-02-15
 Bugfix: Traces exceeding "Trace To" Limit do not even show the drawn traces to

@@ -9,22 +9,145 @@ namespace ReqDBBrowser
 {
     class ReqTraceUIDataGridView: DataGridView
     {
-        ArrayList arrLBTracesTo;
-        ArrayList arrLBTracesFrom;
         int nOldWidth;
+
+        class DataGridViewListBoxColumn : DataGridViewColumn
+        {
+            public DataGridViewListBoxColumn()
+                : base(new DataGridViewListBoxCell())
+            {
+            }
+            public override DataGridViewCell CellTemplate
+            {
+                get
+                {
+                    return base.CellTemplate;
+                }
+                set
+                {
+                    // Ensure that the cell used for the template is a DataGridViewListBoxCell. 
+                    if (value != null &&
+                        !value.GetType().IsAssignableFrom(typeof(DataGridViewListBoxCell)))
+                    {
+                        throw new InvalidCastException("Must be a DataGridViewListBoxCell");
+                    }
+                    base.CellTemplate = value;
+                }
+            }
+        }
+
+        class MyListBox : ListBox
+        {
+            protected override void OnPaint(PaintEventArgs e)
+            {
+                base.OnPaint(e);
+            }
+
+            protected override void OnMouseDown(MouseEventArgs e)
+            {
+                base.OnMouseDown(e);
+            }
+
+            protected override void OnLayout(LayoutEventArgs levent)
+            {
+                base.OnLayout(levent);
+            }
+        }
+
+        class DataGridViewListBoxCell : DataGridViewCell
+        {
+            MyListBox lb;
+            bool bIsCreated;
+            bool bIsInvalidating;
+            Rectangle rectOldCellBounds;
+            Point pOldScrollPos;
+
+            public DataGridViewListBoxCell():base ()
+            {
+                lb = new MyListBox();
+                lb.MaximumSize = new Size(1000, 1000);
+                bIsCreated = false;
+                bIsInvalidating = false;
+            }
+
+            public override object Clone()
+            {
+                //lb.Clone ();
+                return base.Clone();
+            }
+
+            public ListBox.ObjectCollection Items
+            { get { return lb.Items; } }
+
+            public override Type ValueType
+            { get { return typeof(MyListBox); } }
+
+            protected override object GetFormattedValue(object value, int rowIndex, 
+                ref DataGridViewCellStyle cellStyle, 
+                System.ComponentModel.TypeConverter valueTypeConverter, 
+                System.ComponentModel.TypeConverter formattedValueTypeConverter, 
+                DataGridViewDataErrorContexts context)
+            {
+                return null;
+            }
+
+            protected override void Paint(Graphics graphics, Rectangle clipBounds, 
+                Rectangle cellBounds, int rowIndex, DataGridViewElementStates cellState, 
+                object value, object formattedValue, string errorText, 
+                DataGridViewCellStyle cellStyle, DataGridViewAdvancedBorderStyle advancedBorderStyle, 
+                DataGridViewPaintParts paintParts)
+            {
+                Point pScrollPos = new Point (DataGridView.HorizontalScrollingOffset, DataGridView.VerticalScrollingOffset);
+                // Calculate the area in which to draw the Listbox.
+                if (!bIsCreated)
+                {
+                    DataGridView.Controls.Add(lb);
+                    lb.SelectedIndexChanged += ((ReqTraceUIDataGridView)DataGridView).lbTraces_SelectedIndexChanged;
+                    bIsCreated = true;
+                }
+
+                System.Diagnostics.Trace.Write
+                    ("Updating Cell (" + ColumnIndex + "/" + RowIndex + ") - rowIdx: " + rowIndex + 
+                     " | New (" + cellBounds.X + "/" + cellBounds.Y + ")(" + cellBounds.Width + "/" + cellBounds.Height + ")" +
+                     " | Old (" + rectOldCellBounds.X + "/" + rectOldCellBounds.Y + ")" +
+                     " |  Scroll (" + pScrollPos.X + "/" + pScrollPos.Y + ")" );
+
+                if ((cellBounds != rectOldCellBounds) || (pScrollPos != pOldScrollPos))
+                {
+                    lb.Location = cellBounds.Location;
+                    lb.Size = cellBounds.Size;
+                    lb.Parent.Controls.SetChildIndex(lb, 2);
+                    System.Diagnostics.Trace.WriteLine(" ==> redrawn (" + lb.Location.X + "/" + lb.Location.Y + ")(" + 
+                        lb.Size.Width + "/" + lb.Size.Height + ")");
+                    rectOldCellBounds = cellBounds;
+                    pOldScrollPos = pScrollPos;
+                }
+                else
+                    System.Diagnostics.Trace.WriteLine("");
+
+                base.Paint(graphics, clipBounds, cellBounds, rowIndex, cellState, value, formattedValue, errorText, cellStyle, advancedBorderStyle, paintParts);
+            }
+        }
 
         public ReqTraceUIDataGridView(int nWidth, ReqTraceUIDataGridView dataGridOld)
         {
-            arrLBTracesFrom = new ArrayList();
-            arrLBTracesTo = new ArrayList();
+            DataGridViewListBoxColumn lbCol;
 
             nWidth -= RowHeadersWidth;
 
-            ColumnCount = 5;
+            ColumnCount = 3;
             Location = new Point(0, 0);
             Dock = DockStyle.Fill;
             AllowUserToAddRows = false;
             AllowUserToDeleteRows = false;
+
+            lbCol = new DataGridViewListBoxColumn();
+            lbCol.Name = "Trace to";
+            Columns.Add(lbCol);
+
+            lbCol = new DataGridViewListBoxColumn();
+            lbCol.Name = "Trace from";
+            Columns.Add(lbCol);
 
             Columns[0].Name = "Tag";
             Columns[0].Visible = false;
@@ -35,11 +158,7 @@ namespace ReqDBBrowser
             Columns[2].Name = "Text";
             Columns[2].DefaultCellStyle.WrapMode = DataGridViewTriState.True;
             Columns[2].Width = nWidth / 2;
-            Columns[3].Name = "Trace to";
-            Columns[3].DefaultCellStyle.WrapMode = DataGridViewTriState.True;
             Columns[3].Width = nWidth / 5;
-            Columns[4].Name = "Trace from";
-            Columns[4].DefaultCellStyle.WrapMode = DataGridViewTriState.True;
             Columns[4].Width = nWidth / 5;
 
             if (dataGridOld != null)
@@ -53,8 +172,7 @@ namespace ReqDBBrowser
 
         public void AddRow(ReqTraceGrid.ReqTraceNode reqTraceNode)
         {
-            ListBox lb;
-            Rectangle rect;
+            DataGridViewListBoxCell lbCell;
             DataGridViewRow row;
             string[] astrReq;
 
@@ -84,61 +202,18 @@ namespace ReqDBBrowser
                 row.Cells[1].Style.BackColor = Color.PaleGreen;
             row.Height = Font.Height * 11 / 2;
             Rows.Add(row);
-            
-            lb = new ListBox();
-            foreach (string str in arrTracesTo)
-                lb.Items.Add(str);
-            lb.Tag = row.Index;
-            Controls.Add(lb);
-            arrLBTracesTo.Add(lb);
-            lb.BorderStyle = BorderStyle.None;
-            lb.SelectedIndexChanged += lbTraces_SelectedIndexChanged;
 
-            lb = new ListBox();
+            lbCell = (DataGridViewListBoxCell) row.Cells[3];
+            foreach (string str in arrTracesTo)
+                lbCell.Items.Add(str);
+
+            lbCell = (DataGridViewListBoxCell)row.Cells[4];
             foreach (string str in arrTracesFrom)
-                lb.Items.Add(str);
-            lb.Tag = row.Index;
-            Controls.Add(lb);
-            arrLBTracesFrom.Add(lb);
-            lb.BorderStyle = BorderStyle.None;
-            lb.SelectedIndexChanged += lbTraces_SelectedIndexChanged;
+                lbCell.Items.Add (str);
         }
 
         public void Populated ()
         {
-            AdaptListBoxLayout();
-        }
-
-        private void AdaptListBoxLayout()
-        {
-            SuspendLayout();
-            AdaptListBoxLayout (arrLBTracesFrom, 4);
-            AdaptListBoxLayout (arrLBTracesTo, 3);
-            ResumeLayout();
-        }
-
-        private void AdaptListBoxLayout(ArrayList arrLBTraces, int nCol)
-        {
-            Rectangle rect;
-            foreach (ListBox lb in arrLBTraces)
-            {
-                rect = GetCellDisplayRectangle(nCol, (int)lb.Tag, true);
-                lb.Location = rect.Location;
-                rect.Width -= 2;
-                lb.Size = rect.Size;
-            }
-        }
-
-        protected override void OnScroll(ScrollEventArgs e)
-        {
-            base.OnScroll(e);
-            AdaptListBoxLayout();
-        }
-
-        protected override void OnColumnWidthChanged(DataGridViewColumnEventArgs e)
-        {
-            base.OnColumnWidthChanged(e);
-            AdaptListBoxLayout();
         }
 
         public void ParentSizeChanged(int nNewWidth)
@@ -157,7 +232,6 @@ namespace ReqDBBrowser
                     Columns[1].Width += nInc / 10;
                     Columns[3].Width += nInc / 5;
                     Columns[4].Width += nInc / 5;
-                    AdaptListBoxLayout();
                 }
             }
             nOldWidth = nNewWidth;
@@ -202,6 +276,11 @@ namespace ReqDBBrowser
 
 
             lb.SelectedIndex = -1;
+        }
+
+        protected override void OnDataError(bool displayErrorDialogIfNoHandler, DataGridViewDataErrorEventArgs e)
+        {
+            base.OnDataError(displayErrorDialogIfNoHandler, e);
         }
 
     }
