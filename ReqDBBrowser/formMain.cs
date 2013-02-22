@@ -9,7 +9,8 @@ using System.Collections;
 
 namespace ReqDBBrowser
 {
-    public partial class FormMain : Form, ReqProProject.IReqProProjectCb, TreeViewReq.ITreeViewReqCb
+    public partial class FormMain : Form, 
+        ReqProProject.IReqProProjectCb, TreeViewReq.ITreeViewReqCb, ReqTraceUIDataGridView.ITraceViewGridCb
     {
         TreeViewReq treeViewRq;
         ReqProProject reqDBBrowser;
@@ -180,7 +181,8 @@ namespace ReqDBBrowser
                 dataGridOld = dataGridReq;
                 tabPageTable.Controls.Remove(dataGridReq);
             }
-            dataGridReq = new ReqTraceUIDataGridView(tabPageTable.Size.Width, dataGridOld);
+            dataGridReq = new ReqTraceUIDataGridView(tabPageTable.Size.Width, dataGridOld, 
+                                this as ReqTraceUIDataGridView.ITraceViewGridCb);
             tabPageTable.Controls.Add(dataGridReq);
         }
 
@@ -400,7 +402,7 @@ namespace ReqDBBrowser
                 dataGridReq.ParentSizeChanged(tabPageTable.Size.Width);
         }
 
-        /* from TreeViewReq.ITreeViewReqCb */
+        #region TreeViewReq.ITreeViewReqCb
         public void GetReqCtxMenu(out string[] astrMnuEntry)
         {
             astrMnuEntry = new string[] {
@@ -462,5 +464,62 @@ namespace ReqDBBrowser
             }
             return bDoImplicitSelect;
         }
+        #endregion
+
+        #region ReqTraceUIDataGridView.ITraceViewGridCb
+
+        public void GetRowCtxMenu(out string[] astrMnuEntry)
+        {
+            astrMnuEntry = new string[] {
+                "Show Entry in Tree",
+                "Show Selected Entries in Tree"
+            };
+        }
+
+        public void RowMenuAction(int nActKey, int [] nSelKeys, int [] nMarkedKeys, int nMenuItem, string strMenuText)
+        {
+            string strDiag;
+            switch (nMenuItem)
+            {
+                case 0:
+                    if (treeViewRq.ShowNode(nActKey) == false)
+                        MessageBox.Show("Could not find key: " + nActKey, "Failure", 
+                            MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    break;
+                case 1:
+                    if (treeViewRq.ShowNodes(nSelKeys) == false)
+                    {
+                        strDiag = "";
+                        foreach (int i in nSelKeys)
+                            strDiag += i + " ";
+                        MessageBox.Show("Could not find all keys: " + strDiag, "Failure", 
+                            MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                    break;
+                default:
+                    strDiag =      "Key:            " + nActKey;
+                    if (nSelKeys != null)
+                    {
+                        strDiag += "\nSel Keys:    "; ;
+                        foreach (int i in nSelKeys)
+                            strDiag += i + " ";
+                    }
+                    else
+                        strDiag += "\nno selected keys";
+                    if (nMarkedKeys != null)
+                    {
+                        strDiag += "\nMarked Keys: ";
+                        foreach (int i in nMarkedKeys)
+                            strDiag += i + " ";
+                    }
+                    else
+                        strDiag += "\nno marked keys";
+
+                    MessageBox.Show (strDiag, strMenuText + " not yet implemented");
+                    break;
+            }
+        }
+
+        #endregion
     }
 }

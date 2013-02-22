@@ -116,11 +116,6 @@ namespace ReqDBBrowser
             base.OnNodeMouseClick(e);
         }
 
-        protected override void OnAfterSelect(TreeViewEventArgs e)
-        {
-            base.OnAfterSelect(e);
-        }
-
         protected override void OnBeforeExpand(TreeViewCancelEventArgs e)
         {
             base.OnBeforeExpand(e);
@@ -183,6 +178,46 @@ namespace ReqDBBrowser
         public int GetKeyOfSelected()
         {
             return ((int)SelectedNode.Tag);
+        }
+
+        private bool ShowNodeRecursiv (TreeNode tnIn, int nKey, bool bSelect)
+        {
+            bool bRet = false;
+            foreach (TreeNode tn in tnIn.Nodes)
+                bRet = bRet || ShowNodeRecursiv (tn, nKey, bSelect);
+            if ((int)tnIn.Tag == nKey)
+            {
+                bRet = true;
+                if (bSelect)
+                {
+                    tnIn.Expand ();
+                    SelectedNode = tnIn;
+                }
+            }
+            if (bRet)
+                tnIn.Expand ();
+            return bRet;
+        }
+
+        public bool ShowNode(int nKey)
+        {
+            return ShowNode(nKey, true);
+        }
+
+        private bool ShowNode(int nKey, bool bSelect)
+        {
+            bool bRet = false;
+            foreach (TreeNode tn in Nodes)
+                bRet = bRet || ShowNodeRecursiv(tn, nKey, bSelect);
+            return bRet;
+        }
+
+        public bool ShowNodes(int[] narrKeys)
+        {
+            bool bRet = true;
+            foreach (int nKey in narrKeys)
+                bRet = bRet && ShowNode(nKey, false);
+            return bRet;
         }
 
     }

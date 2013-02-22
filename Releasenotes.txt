@@ -1,5 +1,9 @@
+2013-02-22
+Functional Extension: Context Menu in TraceTable View - possibility to jump to TreeView
+
 2013-02-21
 Bugfix: TraceTable sortability repaired
+Bug introduced: sometimes first/last visible row does not show correct requirement traces --> modify col width repairs
 
 2013-02-20
 Usability: added clickable Traces to table view

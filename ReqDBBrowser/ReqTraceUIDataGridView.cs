@@ -10,6 +10,9 @@ namespace ReqDBBrowser
     class ReqTraceUIDataGridView: DataGridView
     {
         int nOldWidth;
+        ITraceViewGridCb cb;
+        ContextMenuStrip mnuCtxRow;
+        DataGridViewCellEventArgs locMouse;
 
         class DataGridViewListBoxColumn : DataGridViewColumn
         {
@@ -58,7 +61,6 @@ namespace ReqDBBrowser
         {
             MyListBox lb;
             bool bIsCreated;
-            bool bIsInvalidating;
             Rectangle rectOldCellBounds;
             Point pOldScrollPos;
 
@@ -67,7 +69,6 @@ namespace ReqDBBrowser
                 lb = new MyListBox();
                 lb.MaximumSize = new Size(1000, 1000);
                 bIsCreated = false;
-                bIsInvalidating = false;
             }
 
             public override object Clone()
@@ -129,9 +130,19 @@ namespace ReqDBBrowser
             }
         }
 
-        public ReqTraceUIDataGridView(int nWidth, ReqTraceUIDataGridView dataGridOld)
+        public interface ITraceViewGridCb
+        {
+            void GetRowCtxMenu(out string[] astrMnuEntry);
+            void RowMenuAction(int nActKey, int[] nSelKeys, int[] nMarkedKeys, int nMenuItem, string strMenuText);
+        }
+
+        public ReqTraceUIDataGridView(int nWidth, ReqTraceUIDataGridView dataGridOld, ITraceViewGridCb cb)
         {
             DataGridViewListBoxColumn lbCol;
+            this.cb = cb;
+            string[] astrMnuEntry;
+            ToolStripMenuItem tsMnuItem;
+            int nMnuItem;
 
             nWidth -= RowHeadersWidth;
 
@@ -168,6 +179,19 @@ namespace ReqDBBrowser
             DataGridViewRow row = RowTemplate;
             row.Height = Font.Height * 11 / 2;
 
+            // Create the ContextMenuStrip.
+            mnuCtxRow = new ContextMenuStrip();
+            cb.GetRowCtxMenu(out astrMnuEntry);
+            nMnuItem = 0;
+            foreach (string str in astrMnuEntry)
+            {
+                tsMnuItem = new ToolStripMenuItem(str, null, mnuCtxRow_Click);
+                tsMnuItem.Tag = nMnuItem++;
+                mnuCtxRow.Items.Add(tsMnuItem);
+            }
+            //mnuCtxPkg.Items.Add(new ToolStripSeparator());
+            //tsMnuItem = new ToolStripMenuItem("collapse all", null, mnuCtxCollapseAll_Click);
+            //mnuCtxPkg.Items.Add(tsMnuItem);
         }
 
         public void AddRow(ReqTraceGrid.ReqTraceNode reqTraceNode)
@@ -201,6 +225,8 @@ namespace ReqDBBrowser
             if (reqTraceNode.IsRootNode)
                 row.Cells[1].Style.BackColor = Color.PaleGreen;
             row.Height = Font.Height * 11 / 2;
+            row.ContextMenuStrip = mnuCtxRow;
+            row.Tag = reqTraceNode.Key;
             Rows.Add(row);
 
             lbCell = (DataGridViewListBoxCell) row.Cells[3];
@@ -212,7 +238,7 @@ namespace ReqDBBrowser
                 lbCell.Items.Add (str);
         }
 
-        public void Populated ()
+        public void PopulationDone ()
         {
         }
 
@@ -235,6 +261,22 @@ namespace ReqDBBrowser
                 }
             }
             nOldWidth = nNewWidth;
+        }
+
+        private void mnuCtxRow_Click(object sender, EventArgs e)
+        {
+            ToolStripMenuItem mnuItem;
+            List<int> arrSelKeys;
+
+            mnuItem = (ToolStripMenuItem)sender;
+
+            arrSelKeys = new List<int> ();
+            foreach (DataGridViewRow row in Rows)
+                if (row.Selected)
+                    arrSelKeys.Add ((int)row.Tag);
+
+            cb.RowMenuAction ((int)Rows[locMouse.RowIndex].Tag, 
+                arrSelKeys.ToArray (), null, (int)mnuItem.Tag, mnuItem.Text);
         }
 
         private void lbTraces_SelectedIndexChanged(object sender, System.EventArgs e)
@@ -276,6 +318,12 @@ namespace ReqDBBrowser
 
 
             lb.SelectedIndex = -1;
+        }
+
+        protected override void OnCellMouseEnter(DataGridViewCellEventArgs e)
+        {
+            locMouse = e;
+            base.OnCellMouseEnter(e);
         }
 
         protected override void OnDataError(bool displayErrorDialogIfNoHandler, DataGridViewDataErrorEventArgs e)
