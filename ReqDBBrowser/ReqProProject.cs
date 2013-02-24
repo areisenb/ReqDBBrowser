@@ -167,6 +167,17 @@ namespace ReqDBBrowser
             }
         }
 
+        public void RefreshProject()
+        {
+            if ((state == eState.stConn) || (state == eState.stParsed))
+            {
+                ReqProRequirementPrx.InitCache();
+                rpxProject.Refresh(true);
+                rpxProject.RefreshAllRelatedProjectContexts();
+            }
+
+        }
+
         public ReqTreeNode ReadReqTree(out int nPackageCount)
         {
             ReqPro40.Package rpxPackage;

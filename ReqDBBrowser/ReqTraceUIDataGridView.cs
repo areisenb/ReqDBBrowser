@@ -115,9 +115,17 @@ namespace ReqDBBrowser
 
                 if ((cellBounds != rectOldCellBounds) || (pScrollPos != pOldScrollPos))
                 {
+                    //int nScrollBarCnt;
+
                     lb.Location = cellBounds.Location;
                     lb.Size = cellBounds.Size;
-                    lb.Parent.Controls.SetChildIndex(lb, 2);
+                    // this construct does not bring needed functionality
+                    //nScrollBarCnt = ((ReqTraceUIDataGridView)DataGridView).GetVisibleScrollBarCount();
+                    //lb.Parent.Controls.SetChildIndex(lb, nScrollBarCnt);
+
+                    // still does not work - maybe better than nothing
+                    ((ReqTraceUIDataGridView)DataGridView).BringCtrlToFront(lb);
+
                     System.Diagnostics.Trace.WriteLine(" ==> redrawn (" + lb.Location.X + "/" + lb.Location.Y + ")(" + 
                         lb.Size.Width + "/" + lb.Size.Height + ")");
                     rectOldCellBounds = cellBounds;
@@ -190,8 +198,7 @@ namespace ReqDBBrowser
                 mnuCtxRow.Items.Add(tsMnuItem);
             }
             //mnuCtxPkg.Items.Add(new ToolStripSeparator());
-            //tsMnuItem = new ToolStripMenuItem("collapse all", null, mnuCtxCollapseAll_Click);
-            //mnuCtxPkg.Items.Add(tsMnuItem);
+
         }
 
         public void AddRow(ReqTraceGrid.ReqTraceNode reqTraceNode)
@@ -223,7 +230,7 @@ namespace ReqDBBrowser
             row = new DataGridViewRow();
             row.CreateCells(this, astrReq);
             if (reqTraceNode.IsRootNode)
-                row.Cells[1].Style.BackColor = Color.PaleGreen;
+                row.Cells[1].Style.BackColor = Color.FromArgb(200, 255, 200);
             row.Height = Font.Height * 11 / 2;
             row.ContextMenuStrip = mnuCtxRow;
             row.Tag = reqTraceNode.Key;
@@ -261,6 +268,25 @@ namespace ReqDBBrowser
                 }
             }
             nOldWidth = nNewWidth;
+        }
+
+        public int GetVisibleScrollBarCount()
+        {
+            int nRet = 0;
+            if (HorizontalScrollBar.Visible)
+                nRet++;
+            if (VerticalScrollBar.Visible)
+                nRet++;
+            return (nRet);
+        }
+
+        public void BringCtrlToFront(Control ctrl)
+        {
+            ctrl.BringToFront();
+            if (HorizontalScrollBar.Visible)
+                HorizontalScrollBar.BringToFront();
+            if (VerticalScrollBar.Visible)
+                VerticalScrollBar.BringToFront();
         }
 
         private void mnuCtxRow_Click(object sender, EventArgs e)

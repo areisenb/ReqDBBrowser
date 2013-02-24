@@ -15,7 +15,7 @@
     <TargetZone>LocalIntranet</TargetZone>
     <SignManifests>true</SignManifests>
     <IsWebBootstrapper>false</IsWebBootstrapper>
-    <PublishUrl>N:\RD_SYSBASE\Architektur\Tools\ReqDBBrowser\</PublishUrl>
+    <PublishUrl>\\frequentis.frq\vie\data\SSG\public_rd\Tools\ReqDBBrowser\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
     <UpdateEnabled>false</UpdateEnabled>
@@ -25,6 +25,8 @@
     <UpdatePeriodically>false</UpdatePeriodically>
     <UpdateRequired>false</UpdateRequired>
     <MapFileExtensions>true</MapFileExtensions>
+    <WebPage>publish.htm</WebPage>
+    <AutorunEnabled>true</AutorunEnabled>
     <ApplicationVersion>0.0.0.%2a</ApplicationVersion>
     <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
@@ -158,6 +160,7 @@
     <Compile Include="ReqTraceUIDataGridView.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="ReqTraceUIGraphNode.cs" />
     <Compile Include="ReqTraceUITraceArrow.cs" />
     <Compile Include="ReqTraceUIArrow.cs" />
     <Compile Include="ReqTraceUIArrowDwn.cs" />

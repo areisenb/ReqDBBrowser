@@ -201,6 +201,7 @@ namespace ReqDBBrowser
 
         public bool ShowNode(int nKey)
         {
+            Focus();
             return ShowNode(nKey, true);
         }
 
@@ -215,8 +216,9 @@ namespace ReqDBBrowser
         public bool ShowNodes(int[] narrKeys)
         {
             bool bRet = true;
-            foreach (int nKey in narrKeys)
-                bRet = bRet && ShowNode(nKey, false);
+            if (narrKeys != null)
+                foreach (int nKey in narrKeys)
+                    bRet = bRet && ShowNode(nKey, false);
             return bRet;
         }
 

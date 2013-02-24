@@ -1,41 +1,49 @@
-2013-02-22
-Functional Extension: Context Menu in TraceTable View - possibility to jump to TreeView
+REV 0.0.0.5
+	2013-02-24
+	BugFix: Refresh now really does a refresh to the reqPro database
+	Functional Extension: ContextMenu in Trace Graph to handle "Copy" and sync with TreeView
 
-2013-02-21
-Bugfix: TraceTable sortability repaired
-Bug introduced: sometimes first/last visible row does not show correct requirement traces --> modify col width repairs
+	2013-02-23
+	Refactoring: ReqTraceGraph Nodes handled in dedicated class --> moved from formMain
 
-2013-02-20
-Usability: added clickable Traces to table view
-Usability: indicate "root" requirements with pane green background
-Bug introduced: TraceTable sortability gone lost - sort does not reorder traces to and from
+	2013-02-22
+	Functional Extension: Context Menu in TraceTable View - possibility to jump to TreeView
 
-2013-02-15
-Bugfix: Traces exceeding "Trace To" Limit do not even show the drawn traces to
+	2013-02-21
+	Bugfix: TraceTable sortability repaired
+	Bug introduced: sometimes first/last visible row does not show correct requirement traces --> modify col width repairs
+
+	2013-02-20
+	Usability: added clickable Traces to table view
+	Usability: indicate "root" requirements with pane green background
+	Bug introduced: TraceTable sortability gone lost - sort does not reorder traces to and from
+
+	2013-02-15
+	Bugfix: Traces exceeding "Trace To" Limit do not even show the drawn traces to
 
 REV 0.0.0.4
-2013-02-10
-Performance: introduced cache for related projects
-Performance: check Relations Permission before gathering Relation's Project Properties
+	2013-02-10
+	Performance: introduced cache for related projects
+	Performance: check Relations Permission before gathering Relation's Project Properties
 
-2013-02-08
-Performance: Make use of already read Requirements Collection in Req by key lookup in ReqProRequirementPrx
-Performance: Implement Trace Class for performance analysis
-Functional Extension: Offer Credentials Dialogue for related projects during "open project"
-Refactoring: implement interface instead of delegates on progress indication
+	2013-02-08
+	Performance: Make use of already read Requirements Collection in Req by key lookup in ReqProRequirementPrx
+	Performance: Implement Trace Class for performance analysis
+	Functional Extension: Offer Credentials Dialogue for related projects during "open project"
+	Refactoring: implement interface instead of delegates on progress indication
 
-2013-02-07
-Usability - implicitly select TreeNode on certain context menu clicks ("Requirement Trace")
-Usability - if trace tree selected - arrows are not updated - "Invalidate" at the proper position
-Functional Extension: Log per Requirement as well as per Package added
+	2013-02-07
+	Usability - implicitly select TreeNode on certain context menu clicks ("Requirement Trace")
+	Usability - if trace tree selected - arrows are not updated - "Invalidate" at the proper position
+	Functional Extension: Log per Requirement as well as per Package added
 
-2013-02-06
-Functional Extension: Requirement Traces also on package level possible
-Beautification: Arrows for the trace relations in the "Tree" page
-Preparation: REQ Revisions - prototyping within "formMain"
+	2013-02-06
+	Functional Extension: Requirement Traces also on package level possible
+	Beautification: Arrows for the trace relations in the "Tree" page
+	Preparation: REQ Revisions - prototyping within "formMain"
 
-2013-02-05
-Context Menu in TreeView
+	2013-02-05
+	Context Menu in TreeView
 
-2013-02-04
-Beautification of TreeView (Icons added)
+	2013-02-04
+	Beautification of TreeView (Icons added)

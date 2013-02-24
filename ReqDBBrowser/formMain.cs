@@ -10,21 +10,22 @@ using System.Collections;
 namespace ReqDBBrowser
 {
     public partial class FormMain : Form, 
-        ReqProProject.IReqProProjectCb, TreeViewReq.ITreeViewReqCb, ReqTraceUIDataGridView.ITraceViewGridCb
+        ReqProProject.IReqProProjectCb, TreeViewReq.ITreeViewReqCb,
+        ReqTraceUIDataGridView.ITraceViewGridCb, ReqTraceUIGraphNode.ITraceViewGraphCb
     {
         TreeViewReq treeViewRq;
         ReqProProject reqDBBrowser;
 
         ReqTraceUIDataGridView dataGridReq;
         ReqTraceGrid reqTraceGrid;
-        ArrayList arrTraceDwg;
+        List<ReqTraceUIGraphNode> arrTraceGraphNode;
         FormProgressReqTree formProgressReqTree;
 
         public FormMain()
         {
             InitializeComponent();
             reqDBBrowser = new ReqProProject(this as ReqProProject.IReqProProjectCb);
-            arrTraceDwg = new ArrayList();
+            arrTraceGraphNode = new List<ReqTraceUIGraphNode>();
         }
 
         private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
@@ -202,72 +203,18 @@ namespace ReqDBBrowser
         void PopulateGraph(int nUpCount, int nDownCount)
         {
             ReqTraceGrid.ReqTraceNode reqTraceNode;
-            TextBox textBReq;
-            ToolTip toolTipHdr;
-
-            int j = 0;
-            Size sizeText;
-            Size sizeTagName;
-            int [] nTraceToX;
-            int [] nTraceToY;
-            int nTraces;
-            bool bAdditionalTraces;
-
-            sizeText = new Size(200, 100);
-            sizeTagName = new Size(200, 20);
-            const int nXSpacing = 250;
-            const int nYSpacing = 200;
 
             tabPageTree.Controls.Clear();
-            arrTraceDwg.Clear();
+            arrTraceGraphNode.Clear();
 
+            ReqTraceUIGraphNode.Init(tabPageTree.Controls, this as ReqTraceUIGraphNode.ITraceViewGraphCb);
 
-            for (int i = nUpCount; i >= -nDownCount; i--, j++)
+            for (int i = nUpCount; i >= -nDownCount; i--)
                 for (int k = 0; k < reqTraceGrid.GetElementCount(i); k++)
                 {
                     reqTraceNode = reqTraceGrid[i, k];
                     if (reqTraceNode != null)
-                    {
-                        toolTipHdr = new ToolTip();
-                        
-                        textBReq = new TextBox();
-                        textBReq.Location = new Point(k * nXSpacing + nXSpacing/2, j * nYSpacing + nYSpacing/2);
-                        textBReq.Size = sizeTagName;
-                        textBReq.Multiline = true;
-                        textBReq.ReadOnly = true;
-                        textBReq.Text = reqTraceNode.TagName;
-                        toolTipHdr.BackColor = Color.Yellow;
-                        toolTipHdr.SetToolTip(textBReq, reqTraceNode.TagName);
-                        tabPageTree.Controls.Add(textBReq);
-
-                        textBReq = new TextBox();
-                        textBReq.Location = new Point(k * nXSpacing + nXSpacing/2, j * nYSpacing + sizeTagName.Height + nYSpacing/2);
-                        textBReq.Size = sizeText;
-                        textBReq.Multiline = true;
-                        textBReq.ReadOnly = true;
-                        textBReq.ScrollBars = ScrollBars.Vertical;
-                        textBReq.Text = reqTraceNode.Text;
-                        tabPageTree.Controls.Add(textBReq);
-                        reqTraceNode.GetTraceToCoord (out nTraceToX, out nTraceToY);
-                        
-                        if (reqTraceNode.AreTooManyTracesFrom(out nTraces, out bAdditionalTraces))
-                            arrTraceDwg.Insert (0, new ReqTraceUIArrowDwn (nTraces, bAdditionalTraces, 
-                                k * nXSpacing + nXSpacing/2 + sizeTagName.Width/2, 
-                                j * nYSpacing + nYSpacing/2));
-
-                        if (reqTraceNode.AreTooManyTracesTo(out nTraces, out bAdditionalTraces))
-                            arrTraceDwg.Insert(0, new ReqTraceUIArrowUp (nTraces, bAdditionalTraces,
-                                k * nXSpacing + nXSpacing / 2 + sizeTagName.Width / 2,
-                                j * nYSpacing + sizeTagName.Height + sizeText.Height + nYSpacing / 2));
-
-                        for (int l = nTraceToX.GetLength(0)-1; l >= 0; l--)
-                            if ((nTraceToX[l] != int.MinValue) && (reqTraceNode.X != int.MinValue))
-                                arrTraceDwg.Add (new ReqTraceUITraceArrow (
-                                    reqTraceNode.X * nXSpacing + sizeText.Width / 2 + nXSpacing/2,
-                                    (nUpCount - reqTraceNode.Y) * nYSpacing + sizeTagName.Height + sizeText.Height + nYSpacing/2,
-                                    nTraceToX[l] * nXSpacing + sizeText.Width / 2 + nXSpacing/2,
-                                    (nUpCount - nTraceToY[l]) * nYSpacing + nYSpacing/2));
-                    }
+                        arrTraceGraphNode.Add (new ReqTraceUIGraphNode(nUpCount, reqTraceNode));
                 }
         }
 
@@ -366,11 +313,13 @@ namespace ReqDBBrowser
 
         private void tabPageTree_Paint(object sender, PaintEventArgs e)
         {
-            if (arrTraceDwg != null)
-                foreach (ReqTraceUI reqTrace in arrTraceDwg)
-                {
-                    reqTrace.Draw(e.Graphics, tabPageTree.AutoScrollPosition);
-                }
+            if (arrTraceGraphNode != null)
+            {
+                foreach (ReqTraceUIGraphNode reqTraceNode in arrTraceGraphNode)
+                    reqTraceNode.DrawBackGround(e.Graphics, tabPageTree.AutoScrollPosition);
+                foreach (ReqTraceUIGraphNode reqTraceNode in arrTraceGraphNode)
+                    reqTraceNode.DrawForeGround(e.Graphics, tabPageTree.AutoScrollPosition);
+            }
         }
 
         private void tabPageTree_ClientSizeChanged(object sender, EventArgs e)
@@ -392,6 +341,8 @@ namespace ReqDBBrowser
             formProgressReqTree.Show();
 
             CleanupViews();
+            reqDBBrowser.RefreshProject();
+
             Cursor = Cursors.Default;
             CreateReqTree();
         }
@@ -478,48 +429,100 @@ namespace ReqDBBrowser
 
         public void RowMenuAction(int nActKey, int [] nSelKeys, int [] nMarkedKeys, int nMenuItem, string strMenuText)
         {
-            string strDiag;
             switch (nMenuItem)
             {
                 case 0:
-                    if (treeViewRq.ShowNode(nActKey) == false)
-                        MessageBox.Show("Could not find key: " + nActKey, "Failure", 
-                            MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    SelectTreeNode(nActKey);
                     break;
                 case 1:
-                    if (treeViewRq.ShowNodes(nSelKeys) == false)
-                    {
-                        strDiag = "";
-                        foreach (int i in nSelKeys)
-                            strDiag += i + " ";
-                        MessageBox.Show("Could not find all keys: " + strDiag, "Failure", 
-                            MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
+                    SelectTreeNodes(nSelKeys);
                     break;
                 default:
-                    strDiag =      "Key:            " + nActKey;
-                    if (nSelKeys != null)
-                    {
-                        strDiag += "\nSel Keys:    "; ;
-                        foreach (int i in nSelKeys)
-                            strDiag += i + " ";
-                    }
-                    else
-                        strDiag += "\nno selected keys";
-                    if (nMarkedKeys != null)
-                    {
-                        strDiag += "\nMarked Keys: ";
-                        foreach (int i in nMarkedKeys)
-                            strDiag += i + " ";
-                    }
-                    else
-                        strDiag += "\nno marked keys";
-
-                    MessageBox.Show (strDiag, strMenuText + " not yet implemented");
+                    SelectDiag(nActKey, nSelKeys, nMarkedKeys, strMenuText);
                     break;
             }
         }
 
+        #endregion
+
+        private void SelectTreeNode(int nKey)
+        {
+            if (treeViewRq.ShowNode(nKey) == false)
+                MessageBox.Show("Could not find key: " + nKey, "Failure",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+
+        private void SelectTreeNodes(int[] nKeys)
+        {
+            string strDiag;
+            if (treeViewRq.ShowNodes(nKeys) == false)
+            {
+                strDiag = "";
+                foreach (int i in nKeys)
+                    strDiag += i + " ";
+                MessageBox.Show("Could not find all keys: " + strDiag, "Failure",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void SelectDiag(int nKey, int[] nSelKeys, int[] nMarkedKeys, string strMenuText)
+        {
+            string strDiag;
+            strDiag = "Key:            " + nKey;
+            if (nSelKeys != null)
+            {
+                strDiag += "\nSel Keys:    "; ;
+                foreach (int i in nSelKeys)
+                    strDiag += i + " ";
+            }
+            else
+                strDiag += "\nno selected keys";
+            if (nMarkedKeys != null)
+            {
+                strDiag += "\nMarked Keys: ";
+                foreach (int i in nMarkedKeys)
+                    strDiag += i + " ";
+            }
+            else
+                strDiag += "\nno marked keys";
+
+            MessageBox.Show(strDiag, strMenuText + " not yet implemented");
+
+        }
+
+        #region ReqTraceUIGraphNode.ITraceViewGraphCb
+        public void GetTBTagCtxMenu(out string[] astrMnuEntry)
+        {
+            astrMnuEntry = new string[] {
+                "Show Entry in Tree",
+                "Show Selected Entries in Tree"
+            };
+        }
+
+        public void GetTBNameCtxMenu(out string[] astrMnuEntry)
+        {
+            astrMnuEntry = new string[] {
+                "Show Entry in Tree",
+                "Show Selected Entries in Tree"
+            };
+        }
+
+        public void TBMenuAction (int nActKey, int [] nSelKeys, int [] nMarkedKeys, int nMenuItem, bool bWasTBName, string strMenuText)
+        {
+            switch (nMenuItem)
+            {
+                case 0:
+                    SelectTreeNode(nActKey);
+                    break;
+                case 1:
+                    SelectTreeNodes(nSelKeys);
+                    break;
+                default:
+                    SelectDiag(nActKey, nSelKeys, nMarkedKeys, strMenuText + (bWasTBName ? " Name" : " Tag"));
+                    break;
+            }
+
+        }
         #endregion
     }
 }

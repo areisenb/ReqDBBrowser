@@ -44,6 +44,11 @@ namespace ReqDBBrowser
 
         static ReqProRequirementPrx()
         {
+            InitCache();
+        }
+
+        public static void InitCache()
+        {
             dictReqCache = new Dictionary<int,Requirement> ();
         }
 
