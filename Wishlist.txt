@@ -1,0 +1,31 @@
+Top Level
+  Search 
+     within Requ Tree
+     within Trace Table
+     within Trace Graph
+     within Generic Table
+  Filter 
+     for Requirement Trace View
+     for Log, View Requirements, ...
+     general
+       Project
+       Requirement Types (enum all + offer multiselect List)
+       specific Filters for general Attributes (Version, Tag, Name, Text)
+  ReqPro Views
+     show Views
+     display View Results
+  Export in Generic Table / Trace Table
+     Entire Table via Clipboard
+     selected cells via Clipboard (Row, Cols, bunch of cells)
+     direct Excel Export
+  Import???
+     Requirements via Drag/Drop to TreeView
+     
+Enhance Existing
+  Cross Link
+     ctx menu in generic Table to view in Tree
+     ctx menu in tree to view in trace table, graph
+  Display Generic Table
+     Apply Filters?
+    
+     

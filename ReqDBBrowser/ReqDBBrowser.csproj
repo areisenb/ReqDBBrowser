@@ -58,6 +58,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="FormColPicker.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormColPicker.Designer.cs">
+      <DependentUpon>FormColPicker.cs</DependentUpon>
+    </Compile>
     <Compile Include="FormGenericTable.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -102,6 +108,10 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="FormColPicker.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>FormColPicker.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="FormGenericTable.resx">
       <SubType>Designer</SubType>
       <DependentUpon>FormGenericTable.cs</DependentUpon>

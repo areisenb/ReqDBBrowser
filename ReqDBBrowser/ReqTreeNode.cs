@@ -63,5 +63,14 @@ namespace ReqDBBrowser
             return (reqTreeNodeType == eReqTreeNodeType.eTreeNodeReq);
         }
 
+        public bool IsRoot()
+        {
+            return (reqTreeNodeType == eReqTreeNodeType.eTreeNodeRoot);
+        }
+
+        public bool IsPackage()
+        {
+            return (reqTreeNodeType == eReqTreeNodeType.eTreeNodePkg);
+        }
     }
 }

@@ -18,7 +18,7 @@ namespace ReqDBBrowser
             void GetReqCtxMenu(out string[] astrMnuEntry);
             void GetPkgCtxMenu(out string[] astrMnuEntry);
             bool ReqMenuAction(int nKey, int nMenuItem, string strMenuText);
-            bool PkgMenuAction(ArrayList arrReqKeys, ArrayList arrOtherKeys, 
+            bool PkgMenuAction(ArrayList arrReqKeys, ArrayList arrOtherKeys, int nPkgKey,
                 int nMenuItem, string strMenuText, string strTreePathName);
         }
 
@@ -31,22 +31,39 @@ namespace ReqDBBrowser
             this.cb = cb;
             this.ActiveNode = null;
 
-            // Create the ContextMenuStrip.
+            // Create the ContextMenuStrip for the packages
             mnuCtxPkg = new ContextMenuStrip();
             cb.GetPkgCtxMenu (out astrMenuItems);
             i = 0;
             foreach (string str in astrMenuItems)
             {
-                tsMnuItem = new ToolStripMenuItem(str, null, mnuCtxPkg_Click);
-                tsMnuItem.Tag = i++;
-                mnuCtxPkg.Items.Add(tsMnuItem);
+                if (str.Length > 0)
+                {
+                    tsMnuItem = new ToolStripMenuItem(str, null, mnuCtxPkg_Click);
+                    tsMnuItem.Tag = i;
+                    mnuCtxPkg.Items.Add(tsMnuItem);
+                }
+                else
+                    mnuCtxPkg.Items.Add(new ToolStripSeparator()); 
+                i++;
             }
             mnuCtxPkg.Items.Add(new ToolStripSeparator());
             tsMnuItem = new ToolStripMenuItem ("collapse all", null, mnuCtxCollapseAll_Click);
             mnuCtxPkg.Items.Add(tsMnuItem);
             tsMnuItem = new ToolStripMenuItem("expand all", null, mnuCtxExpandAll_Click);
             mnuCtxPkg.Items.Add(tsMnuItem);
+            mnuCtxPkg.Items.Add(new ToolStripSeparator());
+            tsMnuItem = new ToolStripMenuItem("copy Package Name", null, mnuCtxCpyPkgName_Click);
+            mnuCtxPkg.Items.Add(tsMnuItem);
+            tsMnuItem = new ToolStripMenuItem("copy Package Name + Path", null, mnuCtxCpyPkgPath_Click);
+            mnuCtxPkg.Items.Add(tsMnuItem);
+            mnuCtxPkg.Items.Add(new ToolStripSeparator());
+            tsMnuItem = new ToolStripMenuItem("copy Package Name - recursive", null, mnuCtxCpyPkgNameRec_Click);
+            mnuCtxPkg.Items.Add(tsMnuItem);
+            tsMnuItem = new ToolStripMenuItem("copy Package Name Path - recursive", null, mnuCtxCpyPkgPathRec_Click);
+            mnuCtxPkg.Items.Add(tsMnuItem);
 
+            // Create the ContextMenuStrip for the requirements
             mnuCtxReq = new ContextMenuStrip();
             cb.GetReqCtxMenu(out astrMenuItems);
             i = 0;
@@ -73,7 +90,7 @@ namespace ReqDBBrowser
             System.Collections.ArrayList arrReqKeys = new System.Collections.ArrayList();
             System.Collections.ArrayList arrOtherKeys = new System.Collections.ArrayList();
             GetNodesTagRecursive(ActiveNode, arrReqKeys, arrOtherKeys);
-            if (cb.PkgMenuAction(arrReqKeys, arrOtherKeys, (int)mnuItem.Tag, mnuItem.Text, ActiveNode.FullPath))
+            if (cb.PkgMenuAction(arrReqKeys, arrOtherKeys, (int) ActiveNode.Tag, (int)mnuItem.Tag, mnuItem.Text, ActiveNode.FullPath))
                 this.SelectedNode = ActiveNode;
         }
 
@@ -93,6 +110,63 @@ namespace ReqDBBrowser
         private void mnuCtxExpandAll_Click(object sender, EventArgs e)
         {
             ActiveNode.ExpandAll();
+        }
+
+        private void mnuCtxCpyPkgName_Click(object sender, EventArgs e)
+        {
+            string str;
+            str = System.Windows.Forms.Clipboard.GetText(TextDataFormat.Html);
+            str = System.Windows.Forms.Clipboard.GetText(TextDataFormat.Text);
+            str = System.Windows.Forms.Clipboard.GetText(TextDataFormat.CommaSeparatedValue);
+            str = System.Windows.Forms.Clipboard.GetText(TextDataFormat.Rtf);
+            CopyText(ActiveNode.Text);
+        }
+
+        private void mnuCtxCpyPkgPath_Click(object sender, EventArgs e)
+        {
+            CopyText(ActiveNode.FullPath);
+        }
+
+        private void mnuCtxCpyPkgNameRec_Click(object sender, EventArgs e)
+        {
+            string str = "";
+            GetNodesNameRecursive(ActiveNode, ref str, false, 0);
+            CopyText(str);
+        }
+
+        private void mnuCtxCpyPkgPathRec_Click(object sender, EventArgs e)
+        {
+            string str = "";
+            GetNodesNameRecursive(ActiveNode, ref str, true, 0);
+            CopyText(str);
+        }
+
+        private void CopyText(string str)
+        {
+            if (str != null)
+                if (str.Length > 0)
+                    System.Windows.Forms.Clipboard.SetText(str);
+        }
+
+        private static void GetNodesNameRecursive(TreeNode tnIn, ref string strOut, bool bWithPath, int nIndent)
+        {
+            if (tnIn.ImageIndex != 3)
+            {
+                /* it was a requirement otherwise */
+                if (nIndent != 0)
+                    strOut += "\r\n";
+                if (bWithPath)
+                    strOut += tnIn.FullPath;
+                else
+                {
+                    for (int i = 0; i < nIndent; i++)
+                        strOut += "\t";
+                    strOut += tnIn.Text;
+                }
+                nIndent++;
+                foreach (TreeNode tn in tnIn.Nodes)
+                    GetNodesNameRecursive(tn, ref strOut, bWithPath, nIndent);
+            }
         }
 
         private static void GetNodesTagRecursive(TreeNode tnIn, 
@@ -135,26 +209,8 @@ namespace ReqDBBrowser
             }
         }
 
-        public void CreateTree(ReqTreeNode reqTreeNode)
+        public void Set(ReqTreeNode reqTreeNode, TreeNode tn)
         {
-            int i;
-            TreeNode tn = new TreeNode(reqTreeNode.Text);
-            tn.Tag = reqTreeNode.Key;
-            tn.ImageIndex = 0;
-            tn.SelectedImageIndex = 0;
-
-            Nodes.Add(tn);
-            for (i = 0; i < reqTreeNode.Count; i++)
-            {
-                CreateTreeNode(ref tn, reqTreeNode[i]);
-            }
-        }
-
-        public void CreateTreeNode(ref TreeNode tnParent, ReqTreeNode reqTreeNode)
-        {
-            int i;
-            TreeNode tn;
-            tn = new TreeNode(reqTreeNode.Text);
             tn.Tag = reqTreeNode.Key;
             if (reqTreeNode.IsReq())
             {
@@ -163,16 +219,51 @@ namespace ReqDBBrowser
                 tn.ContextMenuStrip = mnuCtxReq;
             }
             else
-            {
-                tn.ContextMenuStrip = mnuCtxPkg;
-            }
+                if (reqTreeNode.IsRoot())
+                {
+                    tn.ImageIndex = 0;
+                    tn.SelectedImageIndex = 0;
+                } else 
+                    tn.ContextMenuStrip = mnuCtxPkg;
+        }
 
+        public void CreateTree(ReqTreeNode reqTreeNode)
+        {
+            int i;
+            TreeNode tn = new TreeNode(reqTreeNode.Text);
+            Set(reqTreeNode, tn);
+
+            Nodes.Add(tn);
+            for (i = 0; i < reqTreeNode.Count; i++)
+                CreateTreeNode(ref tn, reqTreeNode[i]);
+        }
+
+        public void ReplaceActualTree(ReqTreeNode reqTreeNode)
+        {
+            Set(reqTreeNode, ActiveNode);
+            ActiveNode.Text = reqTreeNode.Text;
+
+            foreach (TreeNode tn in ActiveNode.Nodes)
+                tn.Remove();
+            ActiveNode.Nodes.Clear();
+            for (int i = 0; i < reqTreeNode.Count; i++)
+                CreateTreeNode(ref ActiveNode, reqTreeNode[i]);
+        }
+
+        private TreeNode CreateTreeNode(ref TreeNode tnParent, ReqTreeNode reqTreeNode)
+        {
+            int i;
+            TreeNode tn;
+
+            tn = new TreeNode(reqTreeNode.Text);
+            Set(reqTreeNode, tn);
             tnParent.Nodes.Add(tn);
 
             for (i = 0; i < reqTreeNode.Count; i++)
             {
                 CreateTreeNode(ref tn, reqTreeNode[i]);
             }
+            return tn;
         }
 
         public int GetKeyOfSelected()

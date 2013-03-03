@@ -19,7 +19,6 @@ namespace ReqDBBrowser
         private System.Collections.ArrayList arpxRelProjects;
         ReqPro40.CatalogClass rpxCatalog;
 
-        ReqTreeNode reqRootTreeNode;
         Dictionary <int, object> dictPackage;
 
         eState state;
@@ -182,6 +181,7 @@ namespace ReqDBBrowser
         {
             ReqPro40.Package rpxPackage;
             ReqPro40.RootPackage rpxRootPackage;
+            ReqTreeNode reqRootTreeNode;
 
             int nPackageRead = 0;
 
@@ -197,6 +197,8 @@ namespace ReqDBBrowser
                 (rpxRootPackage.Name, rpxRootPackage.key, ReqTreeNode.eReqTreeNodeType.eTreeNodeRoot);
 
             dictPackage = new Dictionary<int, object>();
+
+            rpxRootPackage.Refresh(ReqPro40.enumPackageWeights.ePackageWeight_Package, true);
 
             rpxRootPackage.MoveFirst();
             while (!rpxRootPackage.IsEOF)
@@ -231,6 +233,26 @@ namespace ReqDBBrowser
                 ReadReqTreeNode(rpxChildPackage, ref reqMyTreeNode, ref nPackageRead);
                 rpxPackage.MoveNext();
             }
+        }
+
+        public void RemovePkgs(System.Collections.ArrayList arrPkgKeys)
+        {
+            foreach (int nPkgKey in arrPkgKeys)
+                dictPackage.Remove (nPkgKey);
+        }
+
+        public ReqTreeNode ReadReqTree(out int nPackageCount, int nStartKey)
+        {
+            ReqPro40.Package rpxPkg;
+            // root is just a dummy - will not be used at the end
+            ReqTreeNode reqDummy = new ReqTreeNode ("", 0, ReqTreeNode.eReqTreeNodeType.eTreeNodeRoot);
+
+            nPackageCount = 0;
+            rpxPkg = rpxProject.GetPackage (nStartKey, ReqPro40.enumPackageWeights.ePackageWeight_Empty);
+            rpxPkg.Refresh(ReqPro40.enumPackageWeights.ePackageWeight_Package, true);
+            ReadReqTreeNode(rpxPkg, ref reqDummy, ref nPackageCount);
+            ParseRequirements(rpxPkg, reqDummy[0]);
+            return reqDummy[0];
         }
 
         private void ParseRequirements()
@@ -274,6 +296,41 @@ namespace ReqDBBrowser
             }
             cb.ShowProgressReqPkgTree(0, 0, 0, 0, i + " Requirements inserted");
             cb.ShowProgressReqPkgTree(0, 0, 0, 0, null);
+        }
+
+        private void ParseRequirements(ReqPro40.Package rpxPkg, ReqTreeNode tn)
+        {
+            ReqPro40.Requirement rpxReq;
+            ReqPro40.Package rpxPkgChild;
+            ReqTreeNode tnPkgChild;
+            ReqTreeNode tnReqNew;
+            int nKey;
+            int i;
+
+            object[,] o = (object[,])rpxPkg.KeyList (ReqPro40.enumElementTypes.eElemType_Requirement);
+            for (i=0; i<o.GetLength(1); i++)
+            {
+                if (o[0, i] != null)
+                {
+                    nKey = (int)o[0, i];
+                    rpxReq = GetRequirement(nKey);
+                    tnReqNew = new ReqTreeNode
+                        (rpxReq.get_Tag(ReqPro40.enumTagFormat.eTagFormat_Tag) + ": " + rpxReq.Name,
+                         rpxReq.key, ReqTreeNode.eReqTreeNodeType.eTreeNodeReq);
+                    tn.Add(ref tnReqNew);
+                }
+            }
+
+            for (i = 0; i < tn.Count; i++)
+            {
+                tnPkgChild = tn[i];
+                if (tnPkgChild.IsPackage())
+                {
+                    rpxPkgChild = rpxProject.GetPackage(tnPkgChild.Key, ReqPro40.enumPackageWeights.ePackageWeight_Empty);
+                    //tnPkgChild = (ReqTreeNode)dictPackage[rpxPkgChild.PackageKey];
+                    ParseRequirements(rpxPkgChild, tnPkgChild);
+                }
+            }
         }
 
         public ReqPro40.Requirement GetRequirement(int nKey)

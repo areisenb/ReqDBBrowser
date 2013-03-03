@@ -30,7 +30,8 @@ namespace ReqDBBrowser
             }
             if (nReadTreeElements > 0)
             {
-                progressBarReqPkgTree.Value = nReadTreeElements;
+                if (progressBarReqPkgTree.Maximum > nReadTreeElements)
+                    progressBarReqPkgTree.Value = nReadTreeElements;
                 textBoxReqPkgTree.Text = nReadTreeElements + " of " + this.nSumTreeElements;
             }
             if (nSumRequirements > 0)
@@ -41,15 +42,16 @@ namespace ReqDBBrowser
             }
             if (nReadRequirements > 0)
             {
-                progressBarReqTree.Value = nReadRequirements;
+                if (progressBarReqTree.Maximum > nReadRequirements)
+                    progressBarReqTree.Value = nReadRequirements;
                 textBoxReqTree.Text = nReadRequirements + " of " + this.nSumRequirements;
             }
 
             if (strLogg != null)
                 textBoxReqTreeLog.Text += (strLogg + "\r\n");
-            if ((nSumRequirements == 0) && (nReadRequirements == 0) && (nSumTreeElements == 0) && (nReadTreeElements == 0) && (strLogg == null))
+            //if ((nSumRequirements == 0) && (nReadRequirements == 0) && (nSumTreeElements == 0) && (nReadTreeElements == 0) && (strLogg == null))
                 // if nobody wants to signal nothing - I am obsolete
-                Close();
+            //    Close();
             Application.DoEvents();
             return bCancel;
         }

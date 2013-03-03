@@ -305,8 +305,80 @@ namespace ReqDBBrowser
                 asHistory[i].strUser = rpxRev.VersionUser.FullName;
                 asHistory[i].strDesc = rpxRev.VersionReason;
             }
-
         }
+
+        public int GetAttributes(out string[] astrCol, out string[] astrValue)
+        {
+            ReqPro40.AttrValue rpxAttr;
+            int nCount;
+
+            nCount = rpxReq.AttrValues.Count;
+            astrCol = new string [nCount];
+            astrValue = new string [nCount];
+
+            for (int i = 0; i < nCount; i++)
+            {
+                rpxAttr = rpxReq.AttrValues[i + 1, enumAttrValueLookups.eAttrValueLookup_Index];
+                astrCol[i] = rpxAttr.Label;
+                switch (rpxAttr.DataType) {
+                    case enumAttrDataTypes.eAttrDataTypes_Text:
+                    case enumAttrDataTypes.eAttrDataTypes_List:
+                        astrValue[i] = rpxAttr.Text;
+                        break;
+                    case enumAttrDataTypes.eAttrDataTypes_MultiSelect:
+                        {
+                            int nListCount;
+                            ReqPro40.ListItemValue liVal;
+                            nListCount = rpxAttr.ListItemValues.Count;
+                            astrValue[i] = "";
+                            for (int j=0; j<nListCount; j++) 
+                            {
+                                liVal = rpxAttr.ListItemValues[j+1, enumListItemValueLookups.eListItemValueLookup_Index];
+                                if (liVal.Selected == true)
+                                    astrValue[i] += liVal.Text + "\r\n";
+                            }
+                            break;
+                        }
+                    case enumAttrDataTypes.eAttrDataTypes_Integer:
+                    case enumAttrDataTypes.eAttrDataTypes_Date:
+                    default:
+                        astrValue[i] = rpxAttr.DataTypeName + " not yet implemented";
+                        break;
+                }
+
+            }
+            return nCount;
+        }
+
+        public string PackageName
+        {
+            get { return rpxReq.Package.Name; }
+        }
+
+        public string PackagePathName
+        {
+            get
+            {
+                ReqPro40._iPackage rpxPkg = rpxReq.Package;
+                return (rpxPkg.GetHierarchyPathName());
+            }
+        }
+
+        public string VersionDateTime
+        {
+            get { return rpxReq.VersionDateTime; }
+        }
+
+        public string VersionNumber
+        {
+            get { return rpxReq.VersionNumber; }
+        }
+
+        public string VersionUser
+        {
+            get { return rpxReq.VersionUser.FullName; }
+        }
+
 
     }
 }

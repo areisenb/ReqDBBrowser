@@ -66,6 +66,8 @@ namespace ReqDBBrowser
                     CreateReqTree ();
                 else
                     MessageBox.Show(strErrDiag, "Error Open Project", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                formProgressReqTree.Dispose();
+                formProgressReqTree = null;
             }
         }
 
@@ -161,6 +163,22 @@ namespace ReqDBBrowser
             Cursor = Cursors.Default;
         }
 
+        private void RefreshPackage(int nPkgKey, ArrayList arrOldPkgKeys)
+        {
+            ReqTreeNode reqTreeNode;
+            int nPackageCount;
+
+            formProgressReqTree = new FormProgressReqTree();
+            formProgressReqTree.Show();
+
+            reqDBBrowser.RemovePkgs(arrOldPkgKeys);
+            reqTreeNode = reqDBBrowser.ReadReqTree(out nPackageCount, nPkgKey);
+            treeViewRq.ReplaceActualTree(reqTreeNode);
+            formProgressReqTree.Dispose();
+            formProgressReqTree = null;
+        }
+
+
         void FillReqTraceGrid(ArrayList arrReqPrx,
             int nUpCount, int nDownCount, int nMaxTraces, int nMaxUpCount, int nMaxDownCount)
         {
@@ -254,7 +272,7 @@ namespace ReqDBBrowser
                 astrGrid[i,3] = asHistory[i-1].strDesc;
             }
 
-            genTable.SetGridContent(astrGrid);
+            genTable.SetGridContent(astrGrid, nCount + " Log Entries");
             genTable.Show();
         }
 
@@ -307,7 +325,134 @@ namespace ReqDBBrowser
                 astrGrid[i, 5] = listHistory[i - 1].strDesc;
             }
 
-            genTable.SetGridContent(astrGrid);
+            genTable.SetGridContent(astrGrid, nCount + " Log Entries for " + arrKeys.Count + " Requirements");
+            genTable.Show();
+        }
+
+        private void ShowRequirements(ArrayList arrKeys, string strTreePathName)
+        {
+            ReqProRequirementPrx rpxReq;
+            FormGenericTable genTable;
+            int nCount;
+            string strCell;
+            int nTraceCountTo;
+            int nTraceCountFrom;
+            ReqProRequirementPrx[] arpxReqTracesTo;
+            ReqProRequirementPrx[] arpxReqTracesFrom;
+            ReqTraceGrid.ReqTraceNode reqTN;
+            string[] arrStringTrace;
+            List<string> listTrace = new List<string>();
+
+            string[,] astrGrid;
+            List<string[]> aastrCells;
+            List<string> rowHdrCells = new List<string>();
+            string[] rowCells;
+
+            string[] astrCol;
+            string[] astrValue;
+            int nColCount;
+            List<string> colTraceTo;
+            List<string> colTraceFrom;
+            ReqProRequirementPrx.eTraceAbortReason eAbortReason = ReqProRequirementPrx.eTraceAbortReason.eNoAbort;
+
+
+            genTable = new FormGenericTable("Requirements - Package: " + strTreePathName, null, null);
+            nCount = 0;
+
+            /* at least we have: Tag, Name, Text, Version, Date, User,  */
+            rowHdrCells.Add ("Tag");
+            rowHdrCells.Add ("Name");
+            rowHdrCells.Add ("Text");
+            rowHdrCells.Add("Version");
+            rowHdrCells.Add("Date");
+            rowHdrCells.Add("User");
+            rowHdrCells.Add("Path");
+            rowHdrCells.Add("Package");
+
+            colTraceTo = new List<string>();
+            colTraceFrom = new List<string>();
+
+            colTraceTo.Add("Trace To");
+            colTraceFrom.Add("Trace From");
+
+            aastrCells = new List<string[]> ();
+
+
+            foreach (int nKey in arrKeys)
+            {
+                int nColIdx;
+                rowCells = new string [rowHdrCells.Count];
+
+                rpxReq = reqDBBrowser.GetRequirementPrx(nKey);
+                rowCells [0] = rpxReq.Tag;
+                rowCells [1] = rpxReq.Name;
+                rowCells [2] = rpxReq.Text;
+                rowCells[3] = rpxReq.VersionNumber;
+                rowCells[4] = rpxReq.VersionDateTime;
+                rowCells[5] = rpxReq.VersionUser;
+                rowCells[6] = rpxReq.PackagePathName;
+                rowCells[7] = rpxReq.PackageName;
+
+                nColCount = rpxReq.GetAttributes(out astrCol, out astrValue);
+
+                for (int i=0; i<nColCount; i++)
+                {
+                    nColIdx = rowHdrCells.IndexOf(astrCol[i]);
+                    if (nColIdx == -1)
+                    {
+                        int nOldCnt = rowHdrCells.Count;
+                        string[] rowCellsOld = rowCells;
+                        rowCells = new string[nOldCnt + 1];
+                        rowHdrCells.Add(astrCol[i]);
+                        for (int j=0; j < nOldCnt; j++)
+                            rowCells[j] = rowCellsOld[j];
+                        nColIdx = rowHdrCells.Count - 1;
+                    }
+                    rowCells[nColIdx] = astrValue[i];
+                    if (rowCells[nColIdx] == null)
+                        rowCells[nColIdx] = "";
+                    System.Diagnostics.Trace.Write(rowHdrCells[nColIdx] + "(" + rowCells[nColIdx] + "); ");
+                }
+
+                aastrCells.Add(rowCells);
+                arpxReqTracesTo = rpxReq.GetRequirementTracesTo(20, ref eAbortReason, out nTraceCountTo, null);
+                arpxReqTracesFrom = rpxReq.GetRequirementTracesFrom(20, ref eAbortReason, out nTraceCountFrom, null);
+                reqTN = new ReqTraceGrid.ReqTraceNode(rpxReq, 0, true, arpxReqTracesFrom, arpxReqTracesTo, 
+                    nTraceCountFrom, nTraceCountTo, eAbortReason);
+
+                reqTN.GetTraceFromString(out listTrace);
+                arrStringTrace = listTrace.ToArray();
+                colTraceFrom.Add(string.Join("\n", arrStringTrace));
+
+                reqTN.GetTraceToString(out listTrace);
+                arrStringTrace = listTrace.ToArray();
+                colTraceTo.Add(string.Join("\n", arrStringTrace));
+
+                nCount++;
+            }
+
+            aastrCells.Insert (0, rowHdrCells.ToArray());
+
+            // we want some additional space for Trace To and From
+            astrGrid = new string[aastrCells.Count, rowHdrCells.Count+2];
+            for (int i = 0; i < aastrCells.Count; i++)
+            {
+                int j;
+                for (j = 0; j < rowHdrCells.Count; j++)
+                {
+                    if (j < aastrCells[i].GetLength(0))
+                        strCell = aastrCells[i][j];
+                    else
+                        strCell = null;
+                    if (strCell == null)
+                        strCell = "n/a";
+                    astrGrid[i, j] = strCell;
+                }
+                astrGrid[i, j] = colTraceTo[i];
+                astrGrid[i, j + 1] = colTraceFrom[i];
+            }
+
+            genTable.SetGridContent(astrGrid, arrKeys.Count + " Requirements");
             genTable.Show();
         }
 
@@ -345,6 +490,8 @@ namespace ReqDBBrowser
 
             Cursor = Cursors.Default;
             CreateReqTree();
+            formProgressReqTree.Dispose();
+            formProgressReqTree = null;
         }
 
         private void tabDetails_SizeChanged(object sender, EventArgs e)
@@ -359,7 +506,8 @@ namespace ReqDBBrowser
             astrMnuEntry = new string[] {
                 "Requirement Traces",
                 "View Log",
-                "View Details"
+                "View Details",
+                "Refresh"
             };
         }
 
@@ -379,6 +527,9 @@ namespace ReqDBBrowser
                 case 1:
                     ShowRequirementLog(nKey);
                     break;
+                case 3:
+                    MessageBox.Show("Want to refresh REQ " + nKey);
+                    break;
                 default:
                     MessageBox.Show("Requirement " + strMenuText + " not yet implemented");
                     break;
@@ -390,12 +541,14 @@ namespace ReqDBBrowser
         {
             astrMnuEntry = new string[] {
                 "Requirement Traces",
+                "Refresh",
+                "",
                 "View Log",
                 "View Requirements"
             };
         }
 
-        public bool PkgMenuAction(ArrayList arrReqKeys, ArrayList arrOtherKeys,
+        public bool PkgMenuAction(ArrayList arrReqKeys, ArrayList arrOtherKeys, int nPkgKey,
             int nMenuItem, string strMenuText, string strTreePathName)
         {
             bool bDoImplicitSelect = false;
@@ -407,7 +560,14 @@ namespace ReqDBBrowser
                     bDoImplicitSelect = true;
                     break;
                 case 1:
+                    RefreshPackage(nPkgKey, arrOtherKeys);
+                    bDoImplicitSelect = true;
+                    break;
+                case 3:
                     ShowRequirementsLog(arrReqKeys, strTreePathName);
+                    break;
+                case 4:
+                    ShowRequirements(arrReqKeys, strTreePathName);
                     break;
                 default:
                     MessageBox.Show("Package " + strMenuText + " not yet implemented");
