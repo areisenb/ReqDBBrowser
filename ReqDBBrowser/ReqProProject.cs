@@ -2,6 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
+using System.Windows.Forms;
+using System.Collections;
+
 namespace ReqDBBrowser
 {
     class ReqProProject
@@ -17,7 +20,7 @@ namespace ReqDBBrowser
         ReqPro40.Application rpxApplication;
         ReqPro40.Project rpxProject;
         private System.Collections.ArrayList arpxRelProjects;
-        ReqPro40.CatalogClass rpxCatalog;
+        ReqPro40.Catalog rpxCatalog;
 
         Dictionary <int, object> dictPackage;
 
@@ -33,27 +36,83 @@ namespace ReqDBBrowser
             bool ShowProgressOpenProject(string strLogg);
         }
 
+        public class SearchResult
+        {
+            string strText;
+            int nIdx;
+            int nLen;
+
+            public SearchResult(string strText, int nIdx, int nLen)
+            {
+                this.strText = strText;
+                this.nIdx = nIdx;
+                this.nLen = nLen;
+            }
+
+            public SearchResult(string strText)
+            {
+                this.strText = strText;
+                nIdx = -1;
+                nLen = 0;
+            }
+
+            public string Text
+            {
+                get { return strText; }
+            }
+            public int Index
+            {
+                get { return nIdx; }
+                set { nIdx = value; }
+            }
+            public int Length
+            {
+                get { return nLen; }
+                set { nLen = value; }
+            }
+        }
+
         public ReqProProject (IReqProProjectCb cb)
         {
             state = eState.stDisc;
             this.cb = cb;
 
-            rpxApplication = new ReqPro40.Application ();
-            rpxCatalog = (ReqPro40.CatalogClass) rpxApplication.PersonalCatalog;
-            arpxRelProjects = new System.Collections.ArrayList();
+            try
+            {
+                //MessageBox.Show("Ctor of ReqProProject");
+                arpxRelProjects = new System.Collections.ArrayList();
+                //MessageBox.Show("Empty List of Related Projects created");
+                rpxApplication = new ReqPro40.Application();
+                //MessageBox.Show("rpxApplication created");
+                rpxCatalog = rpxApplication.PersonalCatalog;
+                //MessageBox.Show("RPX Catalog created");
+            }
+            catch (System.Runtime.InteropServices.COMException e)
+            {
+                MessageBox.Show(e.Message + "\r\n\r\nStack: " + e.StackTrace + "\r\n\r\nin: " + e.TargetSite, 
+                    "COM Error", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Error);
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message + "\r\n\r\nStack: " + e.StackTrace + "\r\n\r\nin: " + e.TargetSite, 
+                    "Error", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Error);
+            }
         }
 
         public string[] GetProjectCatalog()
         {
             string[] astrProjects;
             int nCount;
-            rpxCatalog = (ReqPro40.CatalogClass) rpxApplication.PersonalCatalog;
-            nCount = rpxCatalog.Count;
-            astrProjects = new string[nCount];
 
-            for (int i = 0; i < nCount; i++)
+            if (rpxCatalog == null)
+                astrProjects = new string[0];
+            else
             {
-                astrProjects[i] = rpxCatalog[i+1, ReqPro40.enumCatalogLookups.eCatLookup_Index].get_Name();
+                nCount = rpxCatalog.Count;
+                astrProjects = new string[nCount];
+
+                for (int i = 0; i < nCount; i++)
+                    astrProjects[i] = rpxCatalog[i + 1, ReqPro40.enumCatalogLookups.eCatLookup_Index].get_Name();
             }
             return astrProjects;
         }
@@ -348,6 +407,121 @@ namespace ReqDBBrowser
         public ReqProRequirementPrx GetRequirementPrx(int nKey)
         {
             return (new ReqProRequirementPrx(rpxProject, nKey));
+        }
+
+        public void GetProjectReqType(out string strPrjPrefix, out string[] astrReqType, out int[] anReqTypeKey)
+        {
+            GetProjectReqType (rpxProject, out strPrjPrefix, out astrReqType, out anReqTypeKey);
+        }
+
+        public void GetRelProjectReqType(out string[] astrPrjPrefix, out string[][] aastrReqType, out int[][] aanReqTypeKey)
+        {
+            int nRelPrjCnt = arpxRelProjects.Count;
+
+            astrPrjPrefix = new string[nRelPrjCnt];
+            aastrReqType = new string[nRelPrjCnt][];
+            aanReqTypeKey = new int[nRelPrjCnt][];
+
+            for (int i=0; i < nRelPrjCnt; i++)
+                GetProjectReqType((ReqPro40.Project)arpxRelProjects[i], 
+                    out astrPrjPrefix[i], out aastrReqType[i], out aanReqTypeKey[i]);
+        }
+
+        private void GetProjectReqType(ReqPro40.Project rpxPrj, out string strPrjPrefix,
+            out string[] astrReqType, out int[] anReqTypeKey)
+        {
+            int nCount;
+            ReqPro40.ReqType rpxReqType;
+            ReqPro40.ReqTypes rpxReqTypes = rpxPrj.ReqTypes;
+            strPrjPrefix = rpxPrj.Prefix;
+
+            nCount = rpxReqTypes.Count;
+            astrReqType = new string [nCount];
+            anReqTypeKey = new int [nCount];
+
+            for (int i=0; i<nCount; i++)
+            {
+                rpxReqType = rpxReqTypes[i+1, ReqPro40.enumReqTypesLookups.eReqTypesLookups_Index];
+                astrReqType[i] = rpxReqType.ReqPrefix + ": " + rpxReqType.Name;
+                anReqTypeKey[i] = rpxReqType.key;
+            }
+        }
+
+        public void FindRequirements(ArrayList anKeys, string strSearchExpr, bool bUseRegEx,
+                    bool bSearchTag, bool bSearchName, bool bSearchText, 
+                    bool bIgnoreCase,
+                    out SearchResult [] [] searchResult)
+        {
+            ReqProRequirementPrx reqPrx;
+            bool bFound;
+            SearchResult [] res;
+            string strCmpStr;
+            ArrayList anKeysOut = new ArrayList();
+            List <SearchResult[]> listSResult = new List<SearchResult[]>();
+
+            res = new SearchResult [3];
+
+            if (!bUseRegEx)
+                if (bIgnoreCase)
+                    strCmpStr = strSearchExpr.ToLower();
+                else
+                    strCmpStr = strSearchExpr;
+            else
+                strCmpStr = strSearchExpr;
+            
+            foreach (int nKey in anKeys)
+            {
+                bFound = false;
+                reqPrx = GetRequirementPrx (nKey);
+                if (reqPrx != null)
+                {
+                    res[0] = new SearchResult (reqPrx.Tag);
+                    if (bSearchTag)
+                        bFound |= FindInText (ref res[0], strCmpStr, bUseRegEx, bIgnoreCase);
+                    res[1] = new SearchResult (reqPrx.Name);
+                    if (bSearchTag)
+                        bFound |= FindInText (ref res[1], strCmpStr, bUseRegEx, bIgnoreCase);
+                    res[2] = new SearchResult (reqPrx.Text);
+                    if (bSearchText)
+                        bFound |= FindInText (ref res[2], strCmpStr, bUseRegEx, bIgnoreCase);
+                    if (bFound)
+                    {
+                        anKeysOut.Add (nKey);
+                        listSResult.Add (res);
+                        res = new SearchResult[3];
+                    }
+                }
+            }
+            searchResult = listSResult.ToArray();
+        }
+
+        private static bool FindInText (ref SearchResult searchResult, string strSearchExpr, 
+            bool bUseRegEx, bool bIgnoreCase)
+        {
+            int nIdx=-1;
+            string strCmpText;
+
+            if (bIgnoreCase) 
+                strCmpText = searchResult.Text.ToLower();
+            else
+                strCmpText = searchResult.Text;
+
+            if (bUseRegEx)
+                MessageBox.Show ("not yet implemented");
+            else
+                nIdx = strCmpText.IndexOf (strSearchExpr);
+            searchResult.Index = nIdx;
+
+            if (nIdx == -1)
+            {
+                searchResult.Length = 0;
+                return false;
+            }
+            else
+            {
+                searchResult.Length = strSearchExpr.Length;
+                return true;
+            }
         }
     }
 }

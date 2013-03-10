@@ -1,3 +1,19 @@
+	2013-03-10
+	Feature Extension: Provide Filter for "View Requirements", "Requirements Log"
+
+	2013-03-09
+	Usability: unify dialogue style
+	Feature Extension: Provide Filter for "Requirement Traces"
+
+	2013-03-08
+	Usability: template for each different FormGenericTable stores Layout for each future FormGenericTable
+	Usability: show number of hidden columns in FormGenericTable's Statusline
+	Usability: Project Open Dialogue: Project List - size; Open, Cancel Button: Order, Standard Behaviour
+	
+	2013-03-07
+	Usability: add copy as html table to each table view (easy excel export)
+	
+REV 0.0.0.6
 	2013-03-03
 	Feature Extension: Refresh on a per Package base in TreeView
 	

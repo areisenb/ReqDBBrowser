@@ -27,7 +27,8 @@ namespace ReqDBBrowser
             eMaxFromLevelReached =  0x0008,
             eMaxToLevelReached =    0x0010,
             eMaxFromHopsExceeded =  0x0020,
-            eMaxToHopsExceeded =    0x0040
+            eMaxToHopsExceeded =    0x0040,
+            eReqTypeFilter =        0x0080
         }
 
         public struct sHistEntry
@@ -103,7 +104,7 @@ namespace ReqDBBrowser
                         tracer.Stop("Req " + ((rpxReq != null) ? (rpxReq.get_Tag(enumTagFormat.eTagFormat_Tag)) : ("key " + nKey)) +
                             " got via ReqCache");
                     }
-                    catch (System.Collections.Generic.KeyNotFoundException e)
+                    catch (System.Collections.Generic.KeyNotFoundException)
                     {
                         rpxReq = rpxProject.GetRequirement(
                              nKey, ReqPro40.enumRequirementLookups.eReqLookup_Key,
@@ -186,6 +187,9 @@ namespace ReqDBBrowser
         public int Key
         { get { return ((rpxReq!=null)? rpxReq.key : -1); } }
 
+        public int ReqTypeKey
+        { get { return ((rpxReq != null) ? rpxReq.ReqTypeKey : -1); } }
+
         public static string HomePrjPrefix
         {
             get { return strHomePrjPrefix; }
@@ -262,7 +266,6 @@ namespace ReqDBBrowser
         {
             if (rpxReq != null)
             {
-                eTraceAbortReason eLocAbort = eTraceAbortReason.eNoAbort;
                 ReqProRequirementPrx[] aReqPrx = GetRequirementTraces(rpxReq.TracesFrom, nMaxTraceCount,
                     out nTraceCount, reqReqPrxTracesFrom);
                 if (nTraceCount != aReqPrx.GetLength(0))
@@ -278,7 +281,6 @@ namespace ReqDBBrowser
         {
             if (rpxReq != null)
             {
-                eTraceAbortReason eLocAbort = eTraceAbortReason.eNoAbort;
                 ReqProRequirementPrx[] aReqPrx = GetRequirementTraces(rpxReq.TracesTo, nMaxTraceCount,
                     out nTraceCount, reqReqPrxTracesTo);
                 if (nTraceCount != aReqPrx.GetLength(0))

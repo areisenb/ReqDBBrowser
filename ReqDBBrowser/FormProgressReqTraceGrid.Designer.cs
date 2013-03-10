@@ -86,11 +86,13 @@ namespace ReqDBBrowser
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(376, 413);
+            this.ControlBox = false;
             this.Controls.Add(this.progressBarReqCnt);
             this.Controls.Add(this.textBoxReqCnt);
             this.Controls.Add(this.groupBoxReqCnt);
             this.Controls.Add(this.buttonCancel);
             this.Controls.Add(this.textBoxLog);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Name = "FormProgressReqTraceGrid";
             this.Text = "Read Requirement Traces";
             this.ResumeLayout(false);

@@ -187,6 +187,8 @@ namespace ReqDBBrowser
             DataGridViewRow row = RowTemplate;
             row.Height = Font.Height * 11 / 2;
 
+            ClipboardCopyMode = DataGridViewClipboardCopyMode.EnableAlwaysIncludeHeaderText;
+
             // Create the ContextMenuStrip.
             mnuCtxRow = new ContextMenuStrip();
             cb.GetRowCtxMenu(out astrMnuEntry);
@@ -197,7 +199,8 @@ namespace ReqDBBrowser
                 tsMnuItem.Tag = nMnuItem++;
                 mnuCtxRow.Items.Add(tsMnuItem);
             }
-            //mnuCtxPkg.Items.Add(new ToolStripSeparator());
+            mnuCtxRow.Items.Add(new ToolStripSeparator());
+            mnuCtxRow.Items.Add(new ToolStripMenuItem("Copy", null, mnuCpy_Click));
 
         }
 
@@ -233,6 +236,7 @@ namespace ReqDBBrowser
                 row.Cells[1].Style.BackColor = Color.FromArgb(200, 255, 200);
             row.Height = Font.Height * 11 / 2;
             row.ContextMenuStrip = mnuCtxRow;
+            row.HeaderCell.ContextMenuStrip = mnuCtxRow;
             row.Tag = reqTraceNode.Key;
             Rows.Add(row);
 
@@ -303,6 +307,12 @@ namespace ReqDBBrowser
 
             cb.RowMenuAction ((int)Rows[locMouse.RowIndex].Tag, 
                 arrSelKeys.ToArray (), null, (int)mnuItem.Tag, mnuItem.Text);
+        }
+
+        private void mnuCpy_Click(object sender, EventArgs e)
+        {
+            if (SelectedCells.Count > 0)
+                Clipboard.SetDataObject(GetClipboardContent());
         }
 
         private void lbTraces_SelectedIndexChanged(object sender, System.EventArgs e)

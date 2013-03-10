@@ -10,18 +10,34 @@ namespace ReqDBBrowser
 {
     public partial class FormGenericTable : Form
     {
+        static List<FormGenericTableLayout> listFormTemplate;
+
+        static FormGenericTable()
+        {
+            listFormTemplate = new List<FormGenericTableLayout>();
+        }
+
         DataGridView dataGrid;
         int nYOffsetDataGrid;
-        ContextMenuStrip mnuCtxRowHeader;
-        private DataGridViewCellEventArgs mouseLocation;
+        int nCntHiddenCols;
+        private bool bSelfMoving;
 
-        public FormGenericTable(string strCaption, string [] astrHead, float [] afLines)
+        private DataGridViewCellEventArgs mouseLocation;
+        private FormGenericTableLayout formTemplate;
+
+        public FormGenericTable(string strCaption, string [] astrHead, float [] afLines, 
+            FormGenericTableLayout.eFormGenericTableToken eToken)
         {
             TextBox tb;
             int ntbHeigth;
-            
+
+            bSelfMoving = true;
+            nCntHiddenCols = 0;
+
             InitializeComponent();
             Text = strCaption;
+
+            AttachTemplate(eToken);
 
             nYOffsetDataGrid = toolStripMain.Location.Y + toolStripMain.Size.Height;
 
@@ -39,17 +55,44 @@ namespace ReqDBBrowser
                     nYOffsetDataGrid += tb.Size.Height;
                     Controls.Add(tb);
                 }
+            bSelfMoving = false;
+        }
+
+        private void AttachTemplate(FormGenericTableLayout.eFormGenericTableToken eToken)
+        {
+            this.formTemplate = null;
+            foreach (FormGenericTableLayout formTemplate in listFormTemplate)
+                if (formTemplate.IsType(eToken))
+                {
+                    this.formTemplate = formTemplate;
+                    break;
+                }
+            if (this.formTemplate != null)
+            {
+                Location = this.formTemplate.Location;
+                Size = this.formTemplate.Size;
+            }
+            else
+            {
+                this.formTemplate = new FormGenericTableLayout(eToken);
+                listFormTemplate.Add(this.formTemplate);
+            }
         }
 
         public void SetGridContent(string[,] astrContent, string strStatusLineLabel)
         {
             int nCols;
             int nRows;
+            ContextMenuStrip mnuCtxCell;
+            FormGenericTableLayout.ColDefinition sColDef;
 
             if (dataGrid != null)
                 Controls.Remove (dataGrid);
             dataGrid = new DataGridView();
             string [] strRow;
+
+            dataGrid.ClipboardCopyMode = DataGridViewClipboardCopyMode.EnableAlwaysIncludeHeaderText;
+            dataGrid.ColumnWidthChanged += new DataGridViewColumnEventHandler(dataGrid_ColumnWidthChanged);
 
             nCols = astrContent.GetLength (1);
             nRows = astrContent.GetLength (0);
@@ -62,10 +105,23 @@ namespace ReqDBBrowser
             DataGridViewRow row = dataGrid.RowTemplate;
             row.Height = dataGrid.Font.Height * 11 / 2;
 
+            mnuCtxCell = new ContextMenuStrip();
+            mnuCtxCell.Items.Add(new ToolStripMenuItem("Copy", null, mnuCpy_Click));
+            row.ContextMenuStrip = mnuCtxCell;
+            row.HeaderCell.ContextMenuStrip = mnuCtxCell;
+
             for (int i=0; i<nCols; i++)
             {
                 dataGrid.Columns[i].Name = astrContent[0,i];
                 dataGrid.Columns[i].DefaultCellStyle.WrapMode = DataGridViewTriState.True;
+                sColDef = formTemplate[astrContent[0,i]];
+                if (sColDef != null)
+                {
+                    dataGrid.Columns[i].Width = sColDef.Width;
+                    dataGrid.Columns[i].Visible = sColDef.Visible;
+                    if (sColDef.Visible == false)
+                        nCntHiddenCols++;
+                }
             }
 
             dataGrid.Columns[0].Frozen = true;
@@ -82,6 +138,7 @@ namespace ReqDBBrowser
             toolStripStatusLabel1.Text = strStatusLineLabel;
             dataGrid.CellMouseEnter += dataGrid_CellMouseEnter;
             AddContextMenu();
+            UpdateHiddenColsText();
         }
 
         private void FormGenericTable_Resize(object sender, EventArgs e)
@@ -90,6 +147,14 @@ namespace ReqDBBrowser
             foreach (Control ct in Controls)
                 if (ct is TextBox)
                     ct.Width = ClientSize.Width;
+            if (!bSelfMoving)
+                formTemplate.UpdateSize(Location, Size);
+        }
+
+        private void FormGenericTable_Move(object sender, EventArgs e)
+        {
+            if (!bSelfMoving)
+                formTemplate.UpdateSize(Location, Size);
         }
 
         private void SetGridLayout()
@@ -103,16 +168,24 @@ namespace ReqDBBrowser
 
         private void AddContextMenu()
         {
-            mnuCtxRowHeader = new ContextMenuStrip();
+            ContextMenuStrip mnuCtxColHeader;
 
-            mnuCtxRowHeader.Items.Add(new ToolStripMenuItem ("Hide Column", null, mnuCtxRowHeaderHideCol_Click));
-            mnuCtxRowHeader.Items.Add(new ToolStripMenuItem("Show all Columns", null, mnuCtxRowHeaderShowAllCols_Click));
-            mnuCtxRowHeader.Items.Add(new ToolStripMenuItem("Columns...", null, mnuCtxRowHeaderCols_Click));
+            mnuCtxColHeader = new ContextMenuStrip();
+
+            mnuCtxColHeader.Items.Add(new ToolStripMenuItem("Hide Column", null, mnuCtxRowHeaderHideCol_Click));
+            mnuCtxColHeader.Items.Add(new ToolStripMenuItem("Show all Columns", null, mnuCtxRowHeaderShowAllCols_Click));
+            mnuCtxColHeader.Items.Add(new ToolStripMenuItem("Columns...", null, mnuCtxRowHeaderCols_Click));
             foreach (DataGridViewColumn dgvCol in dataGrid.Columns)
-                dgvCol.HeaderCell.ContextMenuStrip = mnuCtxRowHeader;
+                dgvCol.HeaderCell.ContextMenuStrip = mnuCtxColHeader;
         }
 
-
+        private void UpdateHiddenColsText()
+        {
+            if (nCntHiddenCols == 0)
+                toolStripStatusLabelHiddenCols.Text = "";
+            else
+                toolStripStatusLabelHiddenCols.Text = "| " + nCntHiddenCols + " Hidden Columns";
+        }
 
         // Deal with hovering over a cell.
         private void dataGrid_CellMouseEnter(object sender,
@@ -121,15 +194,30 @@ namespace ReqDBBrowser
             mouseLocation = location;
         }
 
+        void dataGrid_ColumnWidthChanged(object sender, DataGridViewColumnEventArgs e)
+        {
+            DataGridViewColumn dvgCol = e.Column;
+            formTemplate.UpdateCol(new FormGenericTableLayout.ColDefinition(dvgCol.Name, dvgCol.Width, dvgCol.Visible));
+        }
+
         private void mnuCtxRowHeaderHideCol_Click(object sender, EventArgs e)
         {
-            dataGrid.Columns[mouseLocation.ColumnIndex].Visible = false;
+            DataGridViewColumn dvgCol = dataGrid.Columns[mouseLocation.ColumnIndex];
+            dvgCol.Visible = false;
+            formTemplate.UpdateCol(new FormGenericTableLayout.ColDefinition(dvgCol.Name, dvgCol.Width, false));
+            nCntHiddenCols++;
+            UpdateHiddenColsText();
         }
 
         private void mnuCtxRowHeaderShowAllCols_Click(object sender, EventArgs e)
         {
             foreach (DataGridViewColumn dvgCol in dataGrid.Columns)
+            {
                 dvgCol.Visible = true;
+                formTemplate.UpdateCol(new FormGenericTableLayout.ColDefinition (dvgCol.Name, dvgCol.Width, true));
+            }
+            nCntHiddenCols = 0;
+            UpdateHiddenColsText();
         }
 
         private void mnuCtxRowHeaderCols_Click(object sender, EventArgs e)
@@ -166,14 +254,25 @@ namespace ReqDBBrowser
             string [] astrCols;
             bool [] abVisible;
             int [] anColIdx;
-            int nColIdx;
+            DataGridViewColumn dvgCol;
+            nCntHiddenCols = 0;
 
             formColPicker.GetColumns(out astrCols, out abVisible, out anColIdx);
             for (int i = 0; i < anColIdx.GetLength(0); i++)
             {
-                nColIdx = anColIdx[i];
-                dataGrid.Columns[nColIdx].Visible = abVisible[i];
+                dvgCol = dataGrid.Columns[anColIdx[i]];
+                dvgCol.Visible = abVisible[i];
+                if (abVisible[i] == false)
+                    nCntHiddenCols++;
+                formTemplate.UpdateCol(new FormGenericTableLayout.ColDefinition(dvgCol.Name, dvgCol.Width, dvgCol.Visible));
             }
+            UpdateHiddenColsText();
+        }
+
+        private void mnuCpy_Click(object sender, EventArgs e)
+        {
+            if (dataGrid.SelectedCells.Count > 0)
+                Clipboard.SetDataObject(dataGrid.GetClipboardContent());
         }
     }
 }

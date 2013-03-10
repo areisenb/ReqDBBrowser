@@ -76,6 +76,7 @@ namespace ReqDBBrowser
             this.Controls.Add(this.listView);
             this.Controls.Add(this.buttonClose);
             this.Controls.Add(this.buttonApply);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.MaximizeBox = false;
             this.Name = "FormColPicker";
             this.ShowIcon = false;

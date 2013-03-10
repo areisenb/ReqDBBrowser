@@ -45,7 +45,7 @@ namespace ReqDBBrowser
             // labelProjectFile
             // 
             this.labelProjectFile.AutoSize = true;
-            this.labelProjectFile.Location = new System.Drawing.Point(49, 69);
+            this.labelProjectFile.Location = new System.Drawing.Point(49, 117);
             this.labelProjectFile.Name = "labelProjectFile";
             this.labelProjectFile.Size = new System.Drawing.Size(40, 13);
             this.labelProjectFile.TabIndex = 0;
@@ -54,7 +54,7 @@ namespace ReqDBBrowser
             // labelUser
             // 
             this.labelUser.AutoSize = true;
-            this.labelUser.Location = new System.Drawing.Point(60, 100);
+            this.labelUser.Location = new System.Drawing.Point(60, 148);
             this.labelUser.Name = "labelUser";
             this.labelUser.Size = new System.Drawing.Size(29, 13);
             this.labelUser.TabIndex = 1;
@@ -63,7 +63,7 @@ namespace ReqDBBrowser
             // labelPassword
             // 
             this.labelPassword.AutoSize = true;
-            this.labelPassword.Location = new System.Drawing.Point(36, 131);
+            this.labelPassword.Location = new System.Drawing.Point(36, 179);
             this.labelPassword.Name = "labelPassword";
             this.labelPassword.Size = new System.Drawing.Size(53, 13);
             this.labelPassword.TabIndex = 2;
@@ -71,7 +71,7 @@ namespace ReqDBBrowser
             // 
             // textBoxProject
             // 
-            this.textBoxProject.Location = new System.Drawing.Point(95, 69);
+            this.textBoxProject.Location = new System.Drawing.Point(95, 117);
             this.textBoxProject.Name = "textBoxProject";
             this.textBoxProject.Size = new System.Drawing.Size(406, 20);
             this.textBoxProject.TabIndex = 3;
@@ -79,14 +79,14 @@ namespace ReqDBBrowser
             // 
             // textBoxUser
             // 
-            this.textBoxUser.Location = new System.Drawing.Point(96, 100);
+            this.textBoxUser.Location = new System.Drawing.Point(96, 148);
             this.textBoxUser.Name = "textBoxUser";
             this.textBoxUser.Size = new System.Drawing.Size(405, 20);
             this.textBoxUser.TabIndex = 4;
             // 
             // textBoxPassword
             // 
-            this.textBoxPassword.Location = new System.Drawing.Point(95, 131);
+            this.textBoxPassword.Location = new System.Drawing.Point(95, 179);
             this.textBoxPassword.Name = "textBoxPassword";
             this.textBoxPassword.PasswordChar = '*';
             this.textBoxPassword.Size = new System.Drawing.Size(406, 20);
@@ -95,7 +95,7 @@ namespace ReqDBBrowser
             // buttonOpen
             // 
             this.buttonOpen.DialogResult = System.Windows.Forms.DialogResult.OK;
-            this.buttonOpen.Location = new System.Drawing.Point(369, 173);
+            this.buttonOpen.Location = new System.Drawing.Point(96, 221);
             this.buttonOpen.Name = "buttonOpen";
             this.buttonOpen.Size = new System.Drawing.Size(132, 23);
             this.buttonOpen.TabIndex = 6;
@@ -104,7 +104,7 @@ namespace ReqDBBrowser
             // 
             // buttonFOpen
             // 
-            this.buttonFOpen.Location = new System.Drawing.Point(507, 67);
+            this.buttonFOpen.Location = new System.Drawing.Point(507, 115);
             this.buttonFOpen.Name = "buttonFOpen";
             this.buttonFOpen.Size = new System.Drawing.Size(44, 23);
             this.buttonFOpen.TabIndex = 7;
@@ -115,7 +115,7 @@ namespace ReqDBBrowser
             // buttonCancel
             // 
             this.buttonCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.buttonCancel.Location = new System.Drawing.Point(96, 173);
+            this.buttonCancel.Location = new System.Drawing.Point(368, 221);
             this.buttonCancel.Name = "buttonCancel";
             this.buttonCancel.Size = new System.Drawing.Size(132, 23);
             this.buttonCancel.TabIndex = 8;
@@ -128,16 +128,16 @@ namespace ReqDBBrowser
             this.listBoxProject.HorizontalScrollbar = true;
             this.listBoxProject.Items.AddRange(new object[] {
             "<User Specific>"});
-            this.listBoxProject.Location = new System.Drawing.Point(95, 24);
+            this.listBoxProject.Location = new System.Drawing.Point(95, 50);
             this.listBoxProject.Name = "listBoxProject";
-            this.listBoxProject.Size = new System.Drawing.Size(405, 30);
+            this.listBoxProject.Size = new System.Drawing.Size(405, 56);
             this.listBoxProject.TabIndex = 9;
             this.listBoxProject.SelectedIndexChanged += new System.EventHandler(this.listBoxProject_SelectedIndexChanged);
             // 
             // labelProjects
             // 
             this.labelProjects.AutoSize = true;
-            this.labelProjects.Location = new System.Drawing.Point(44, 24);
+            this.labelProjects.Location = new System.Drawing.Point(44, 50);
             this.labelProjects.Name = "labelProjects";
             this.labelProjects.Size = new System.Drawing.Size(45, 13);
             this.labelProjects.TabIndex = 10;
@@ -145,9 +145,12 @@ namespace ReqDBBrowser
             // 
             // FormOpenProject
             // 
+            this.AcceptButton = this.buttonOpen;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(604, 224);
+            this.CancelButton = this.buttonCancel;
+            this.ClientSize = new System.Drawing.Size(604, 270);
+            this.ControlBox = false;
             this.Controls.Add(this.labelProjects);
             this.Controls.Add(this.listBoxProject);
             this.Controls.Add(this.buttonCancel);
@@ -159,6 +162,7 @@ namespace ReqDBBrowser
             this.Controls.Add(this.labelPassword);
             this.Controls.Add(this.labelUser);
             this.Controls.Add(this.labelProjectFile);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "FormOpenProject";
             this.Text = "Open Project";

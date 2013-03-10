@@ -28,13 +28,14 @@ namespace ReqDBBrowser
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FormProgressReqTree));
             this.groupBoxReqPkgTree = new System.Windows.Forms.GroupBox();
-            this.groupBoxReqTree = new System.Windows.Forms.GroupBox();
+            this.textBoxReqPkgTree = new System.Windows.Forms.TextBox();
             this.progressBarReqPkgTree = new System.Windows.Forms.ProgressBar();
+            this.groupBoxReqTree = new System.Windows.Forms.GroupBox();
+            this.textBoxReqTree = new System.Windows.Forms.TextBox();
             this.progressBarReqTree = new System.Windows.Forms.ProgressBar();
             this.textBoxReqTreeLog = new System.Windows.Forms.TextBox();
-            this.textBoxReqPkgTree = new System.Windows.Forms.TextBox();
-            this.textBoxReqTree = new System.Windows.Forms.TextBox();
             this.buttonCancel = new System.Windows.Forms.Button();
             this.groupBoxReqPkgTree.SuspendLayout();
             this.groupBoxReqTree.SuspendLayout();
@@ -51,6 +52,21 @@ namespace ReqDBBrowser
             this.groupBoxReqPkgTree.TabStop = false;
             this.groupBoxReqPkgTree.Text = "Packages";
             // 
+            // textBoxReqPkgTree
+            // 
+            this.textBoxReqPkgTree.Location = new System.Drawing.Point(37, 33);
+            this.textBoxReqPkgTree.Name = "textBoxReqPkgTree";
+            this.textBoxReqPkgTree.ReadOnly = true;
+            this.textBoxReqPkgTree.Size = new System.Drawing.Size(190, 20);
+            this.textBoxReqPkgTree.TabIndex = 1;
+            // 
+            // progressBarReqPkgTree
+            // 
+            this.progressBarReqPkgTree.Location = new System.Drawing.Point(37, 67);
+            this.progressBarReqPkgTree.Name = "progressBarReqPkgTree";
+            this.progressBarReqPkgTree.Size = new System.Drawing.Size(190, 23);
+            this.progressBarReqPkgTree.TabIndex = 0;
+            // 
             // groupBoxReqTree
             // 
             this.groupBoxReqTree.Controls.Add(this.textBoxReqTree);
@@ -62,12 +78,13 @@ namespace ReqDBBrowser
             this.groupBoxReqTree.TabStop = false;
             this.groupBoxReqTree.Text = "Requirements";
             // 
-            // progressBarReqPkgTree
+            // textBoxReqTree
             // 
-            this.progressBarReqPkgTree.Location = new System.Drawing.Point(37, 67);
-            this.progressBarReqPkgTree.Name = "progressBarReqPkgTree";
-            this.progressBarReqPkgTree.Size = new System.Drawing.Size(190, 23);
-            this.progressBarReqPkgTree.TabIndex = 0;
+            this.textBoxReqTree.Location = new System.Drawing.Point(37, 33);
+            this.textBoxReqTree.Name = "textBoxReqTree";
+            this.textBoxReqTree.ReadOnly = true;
+            this.textBoxReqTree.Size = new System.Drawing.Size(190, 20);
+            this.textBoxReqTree.TabIndex = 1;
             // 
             // progressBarReqTree
             // 
@@ -86,22 +103,6 @@ namespace ReqDBBrowser
             this.textBoxReqTreeLog.Size = new System.Drawing.Size(261, 169);
             this.textBoxReqTreeLog.TabIndex = 2;
             // 
-            // textBoxReqPkgTree
-            // 
-            this.textBoxReqPkgTree.Location = new System.Drawing.Point(37, 33);
-            this.textBoxReqPkgTree.Name = "textBoxReqPkgTree";
-            this.textBoxReqPkgTree.ReadOnly = true;
-            this.textBoxReqPkgTree.Size = new System.Drawing.Size(190, 20);
-            this.textBoxReqPkgTree.TabIndex = 1;
-            // 
-            // textBoxReqTree
-            // 
-            this.textBoxReqTree.Location = new System.Drawing.Point(37, 33);
-            this.textBoxReqTree.Name = "textBoxReqTree";
-            this.textBoxReqTree.ReadOnly = true;
-            this.textBoxReqTree.Size = new System.Drawing.Size(190, 20);
-            this.textBoxReqTree.TabIndex = 1;
-            // 
             // buttonCancel
             // 
             this.buttonCancel.Enabled = false;
@@ -117,10 +118,13 @@ namespace ReqDBBrowser
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(376, 565);
+            this.ControlBox = false;
             this.Controls.Add(this.buttonCancel);
             this.Controls.Add(this.textBoxReqTreeLog);
             this.Controls.Add(this.groupBoxReqTree);
             this.Controls.Add(this.groupBoxReqPkgTree);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "FormProgressReqTree";
             this.Text = "Read Requirement Tree";
             this.Load += new System.EventHandler(this.FormProgressReqTree_Load);

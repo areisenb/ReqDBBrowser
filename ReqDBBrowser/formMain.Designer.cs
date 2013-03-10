@@ -41,14 +41,15 @@ namespace ReqDBBrowser
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMain = new System.Windows.Forms.ToolStrip();
             this.toolStripButtonRefresh = new System.Windows.Forms.ToolStripButton();
+            this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
+            this.toolStripLabel = new System.Windows.Forms.ToolStripLabel();
+            this.toolStripLabelTraceRoot = new System.Windows.Forms.ToolStripLabel();
             this.splitContainerMain = new System.Windows.Forms.SplitContainer();
             this.tabDetails = new System.Windows.Forms.TabControl();
             this.tabPageTable = new System.Windows.Forms.TabPage();
             this.tabPageTree = new System.Windows.Forms.TabPage();
             this.imageListReqTree = new System.Windows.Forms.ImageList(this.components);
-            this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
-            this.toolStripLabel = new System.Windows.Forms.ToolStripLabel();
-            this.toolStripLabelTraceRoot = new System.Windows.Forms.ToolStripLabel();
+            this.tabPageSearchResults = new System.Windows.Forms.TabPage();
             this.menuStripMain.SuspendLayout();
             this.toolStripMain.SuspendLayout();
             this.splitContainerMain.Panel2.SuspendLayout();
@@ -150,6 +151,21 @@ namespace ReqDBBrowser
             this.toolStripButtonRefresh.ToolTipText = "Refresh";
             this.toolStripButtonRefresh.Click += new System.EventHandler(this.toolStripButtonRefresh_Click);
             // 
+            // toolStripSeparator2
+            // 
+            this.toolStripSeparator2.Name = "toolStripSeparator2";
+            this.toolStripSeparator2.Size = new System.Drawing.Size(6, 25);
+            // 
+            // toolStripLabel
+            // 
+            this.toolStripLabel.Name = "toolStripLabel";
+            this.toolStripLabel.Size = new System.Drawing.Size(0, 22);
+            // 
+            // toolStripLabelTraceRoot
+            // 
+            this.toolStripLabelTraceRoot.Name = "toolStripLabelTraceRoot";
+            this.toolStripLabelTraceRoot.Size = new System.Drawing.Size(0, 22);
+            // 
             // splitContainerMain
             // 
             this.splitContainerMain.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -167,6 +183,7 @@ namespace ReqDBBrowser
             // 
             this.tabDetails.Controls.Add(this.tabPageTable);
             this.tabDetails.Controls.Add(this.tabPageTree);
+            this.tabDetails.Controls.Add(this.tabPageSearchResults);
             this.tabDetails.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tabDetails.Location = new System.Drawing.Point(0, 0);
             this.tabDetails.Name = "tabDetails";
@@ -208,20 +225,15 @@ namespace ReqDBBrowser
             this.imageListReqTree.Images.SetKeyName(2, "folder_open.png");
             this.imageListReqTree.Images.SetKeyName(3, "Requirement.PNG");
             // 
-            // toolStripSeparator2
+            // tabPageSearchResults
             // 
-            this.toolStripSeparator2.Name = "toolStripSeparator2";
-            this.toolStripSeparator2.Size = new System.Drawing.Size(6, 25);
-            // 
-            // toolStripLabel
-            // 
-            this.toolStripLabel.Name = "toolStripLabel";
-            this.toolStripLabel.Size = new System.Drawing.Size(0, 22);
-            // 
-            // toolStripLabelTraceRoot
-            // 
-            this.toolStripLabelTraceRoot.Name = "toolStripLabelTraceRoot";
-            this.toolStripLabelTraceRoot.Size = new System.Drawing.Size(0, 22);
+            this.tabPageSearchResults.Location = new System.Drawing.Point(4, 22);
+            this.tabPageSearchResults.Name = "tabPageSearchResults";
+            this.tabPageSearchResults.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPageSearchResults.Size = new System.Drawing.Size(632, 403);
+            this.tabPageSearchResults.TabIndex = 2;
+            this.tabPageSearchResults.Text = "Search Results";
+            this.tabPageSearchResults.UseVisualStyleBackColor = true;
             // 
             // FormMain
             // 
@@ -269,5 +281,6 @@ namespace ReqDBBrowser
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
         private System.Windows.Forms.ToolStripLabel toolStripLabel;
         private System.Windows.Forms.ToolStripLabel toolStripLabelTraceRoot;
+        private System.Windows.Forms.TabPage tabPageSearchResults;
     }
 }

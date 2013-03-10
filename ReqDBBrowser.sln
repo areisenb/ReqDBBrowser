@@ -5,6 +5,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReqDBBrowser", "ReqDBBrowse
 EndProject
 Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "reqDBBrowser_Setup", "reqDBBrowser_Setup\reqDBBrowser_Setup.vdproj", "{5393260B-6041-4BB0-9543-5D648FBA8458}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataGridViewExt", "DataGridViewExt\DataGridViewExt.csproj", "{3046312C-8E07-4587-8113-749E77BAB7C8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -17,6 +19,10 @@ Global
 		{F1897B4B-9FDC-4E09-84FD-DC9CB9B07837}.Release|Any CPU.Build.0 = Release|Any CPU
 		{5393260B-6041-4BB0-9543-5D648FBA8458}.Debug|Any CPU.ActiveCfg = Debug
 		{5393260B-6041-4BB0-9543-5D648FBA8458}.Release|Any CPU.ActiveCfg = Release
+		{3046312C-8E07-4587-8113-749E77BAB7C8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3046312C-8E07-4587-8113-749E77BAB7C8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3046312C-8E07-4587-8113-749E77BAB7C8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3046312C-8E07-4587-8113-749E77BAB7C8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

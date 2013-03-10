@@ -12,7 +12,6 @@ namespace ReqDBBrowser
         string strReqName;
         string strReqText;
         Point pOrigin;
-        int nKey;
         Font font;
         const int nRectWidth = 200;
         const int nRectHight = 100;

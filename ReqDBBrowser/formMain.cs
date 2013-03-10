@@ -21,11 +21,36 @@ namespace ReqDBBrowser
         List<ReqTraceUIGraphNode> arrTraceGraphNode;
         FormProgressReqTree formProgressReqTree;
 
+        TraceParameter tracePar;
+        List<int> listnReqTypeTracedKeyExcl;
+        List<int> listnReqTypeRootKeyExcl;
+
+        class TraceParameter
+        {
+            public int nUpCount;
+            public int nDownCount;
+            public int nMaxTraces;
+            public int nMaxUpCount;
+            public int nMaxDownCount;
+
+            public TraceParameter ()
+            {
+                nUpCount = 2;
+                nDownCount = 2;
+                nMaxTraces = 20;
+                nMaxUpCount = 3;
+                nMaxDownCount = 3;
+            }
+        }
+
         public FormMain()
         {
             InitializeComponent();
             reqDBBrowser = new ReqProProject(this as ReqProProject.IReqProProjectCb);
             arrTraceGraphNode = new List<ReqTraceUIGraphNode>();
+            tracePar = new TraceParameter();
+            listnReqTypeTracedKeyExcl = new List<int>();
+            listnReqTypeRootKeyExcl = new List<int>();
         }
 
         private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
@@ -133,10 +158,15 @@ namespace ReqDBBrowser
             return formProgressReqTree.ShowProgressReqTree(0, 0, 0, 0, strLogg);
         }
 
-        public void DoRequirementTraces(ArrayList arrKeys, string strTreePathName)
+        public void DoRequirementTraces(ArrayList arrKeys, string strTreePathName, bool bConsiderRootReqTypeFilter)
         {
             ReqProRequirementPrx reqReqPrx;
             ArrayList arrReqPrx = new ArrayList();
+            bool bContinue;
+
+            bContinue = ToContinueAfterFilter(bConsiderRootReqTypeFilter, true);
+            if (!bContinue)
+                return;
 
             Cursor = Cursors.WaitCursor;
             if (strTreePathName.Length == 0)
@@ -149,18 +179,62 @@ namespace ReqDBBrowser
             foreach (int nKey in arrKeys)
             {
                 reqReqPrx = reqDBBrowser.GetRequirementPrx(nKey);
-                arrReqPrx.Add (reqReqPrx);
+                if (bConsiderRootReqTypeFilter)
+                    if (listnReqTypeRootKeyExcl.Contains(reqReqPrx.ReqTypeKey))
+                        reqReqPrx = null;
+                if (reqReqPrx != null)
+                    arrReqPrx.Add (reqReqPrx);
             }
 
             Cursor = Cursors.Default;
-            FillReqTraceGrid(arrReqPrx, 2, 2, 15, 3, 3);
+            FillReqTraceGrid(arrReqPrx, tracePar.nUpCount, tracePar.nDownCount, tracePar.nMaxTraces, 
+                tracePar.nMaxUpCount, tracePar.nMaxDownCount, listnReqTypeTracedKeyExcl);
             Cursor = Cursors.WaitCursor;
             PrepareDataGrid();
-            PopulateDataGrid(2, 2);
-            PopulateGraph(2, 2);
+            PopulateDataGrid(tracePar.nUpCount, tracePar.nDownCount);
+            PopulateGraph(tracePar.nUpCount, tracePar.nDownCount);
             Invalidate();
             this.tabPageTree.Invalidate();
             Cursor = Cursors.Default;
+        }
+
+        private bool ToContinueAfterFilter(bool bConsiderRootReqTypeFilter, bool bConsiderTracedReqTypeFilter)
+        {
+            FormReqFilter formReqFilter;
+            string strPrjPrefix;
+            string[] astrPrjReqType;
+            int[] anReqTypeKey;
+
+            string[] astrRelPrjPrefix;
+            string[][] aastrRelPrjReqType;
+            int[][] aanRelPrjReqTypeKey;
+
+            Cursor = Cursors.WaitCursor;
+            reqDBBrowser.GetProjectReqType(out strPrjPrefix, out astrPrjReqType, out anReqTypeKey);
+            reqDBBrowser.GetRelProjectReqType(out astrRelPrjPrefix, out aastrRelPrjReqType, out aanRelPrjReqTypeKey);
+            Cursor = Cursors.Default;
+
+            formReqFilter = new FormReqFilter(bConsiderRootReqTypeFilter ? strPrjPrefix : null, astrPrjReqType, anReqTypeKey,
+                bConsiderTracedReqTypeFilter ? astrRelPrjPrefix : null, aastrRelPrjReqType, aanRelPrjReqTypeKey,
+                listnReqTypeRootKeyExcl, listnReqTypeTracedKeyExcl,
+                tracePar.nUpCount, tracePar.nDownCount, tracePar.nMaxTraces, tracePar.nMaxUpCount, tracePar.nMaxDownCount);
+
+            if (formReqFilter.ShowDialog() == DialogResult.Cancel)
+                return false;
+
+            tracePar.nUpCount = formReqFilter.UpCount;
+            tracePar.nDownCount = formReqFilter.DownCount;
+            tracePar.nMaxTraces = formReqFilter.MaxTraces;
+            tracePar.nMaxUpCount = formReqFilter.MaxUpCount;
+            tracePar.nMaxDownCount = formReqFilter.MaxDownCount;
+
+            if (bConsiderTracedReqTypeFilter)
+                listnReqTypeTracedKeyExcl = formReqFilter.ReqTypeTracedKeyExcl;
+
+            if (bConsiderRootReqTypeFilter)
+                listnReqTypeRootKeyExcl = formReqFilter.ReqTypeRootKeyExcl;
+
+            return true;
         }
 
         private void RefreshPackage(int nPkgKey, ArrayList arrOldPkgKeys)
@@ -180,14 +254,15 @@ namespace ReqDBBrowser
 
 
         void FillReqTraceGrid(ArrayList arrReqPrx,
-            int nUpCount, int nDownCount, int nMaxTraces, int nMaxUpCount, int nMaxDownCount)
+            int nUpCount, int nDownCount, int nMaxTraces, int nMaxUpCount, int nMaxDownCount,
+            List<int> listnReqTypeTracedKeyExcl)
         {
             FormProgressReqTraceGrid formProgressTraceGrid;
             formProgressTraceGrid = new FormProgressReqTraceGrid();
             formProgressTraceGrid.Show();
 
-            reqTraceGrid = new ReqTraceGrid(nUpCount, nDownCount, nMaxTraces, 
-                nMaxUpCount, nMaxDownCount, formProgressTraceGrid.ShowProgressReqTraceGrid);
+            reqTraceGrid = new ReqTraceGrid(nUpCount, nDownCount, nMaxTraces,
+                nMaxUpCount, nMaxDownCount, listnReqTypeTracedKeyExcl, formProgressTraceGrid.ShowProgressReqTraceGrid);
             reqTraceGrid.AddReq(arrReqPrx);
         }
 
@@ -254,7 +329,7 @@ namespace ReqDBBrowser
             afHeadSize[0] = 3F / 2;
             afHeadSize[1] = 11F / 2;
 
-            genTable = new FormGenericTable("Log - Requirement: " + rpxReq.Tag, astrHead, afHeadSize);
+            genTable = new FormGenericTable("Log - Requirement: " + rpxReq.Tag, astrHead, afHeadSize, FormGenericTableLayout.eFormGenericTableToken.eReqLog);
             rpxReq.GetRequirementLog(out asHistory);
             nCount = asHistory.GetLength(0);
 
@@ -282,6 +357,7 @@ namespace ReqDBBrowser
             FormGenericTable genTable;
             ReqProRequirementPrx.sHistEntry[] asPerReqHistory;
             int nCount;
+            int nReqCount = 0;
             string[,] astrGrid;
             List<ReqProRequirementPrx.sHistEntry> listHistory;
             List<string> listTag;
@@ -291,17 +367,24 @@ namespace ReqDBBrowser
             listTag = new List<string>();
             listName = new List<string>();
 
-            genTable = new FormGenericTable("Log - Package: " + strTreePathName, null, null);
+            if (!ToContinueAfterFilter(true, false))
+                return;
+
+            genTable = new FormGenericTable("Log - Package: " + strTreePathName, null, null, FormGenericTableLayout.eFormGenericTableToken.eReqLog);
 
             foreach (int nKey in arrKeys)
             {
                 rpxReq = reqDBBrowser.GetRequirementPrx(nKey);
-                rpxReq.GetRequirementLog(out asPerReqHistory);
-                listHistory.AddRange(asPerReqHistory);
-                for (int i = 0; i < asPerReqHistory.GetLength(0); i++)
+                if (!listnReqTypeRootKeyExcl.Contains(rpxReq.ReqTypeKey))
                 {
-                    listTag.Add(rpxReq.Tag);
-                    listName.Add(rpxReq.Name);
+                    rpxReq.GetRequirementLog(out asPerReqHistory);
+                    listHistory.AddRange(asPerReqHistory);
+                    for (int i = 0; i < asPerReqHistory.GetLength(0); i++)
+                    {
+                        listTag.Add(rpxReq.Tag);
+                        listName.Add(rpxReq.Name);
+                    }
+                    nReqCount++;
                 }
             }
 
@@ -325,7 +408,7 @@ namespace ReqDBBrowser
                 astrGrid[i, 5] = listHistory[i - 1].strDesc;
             }
 
-            genTable.SetGridContent(astrGrid, nCount + " Log Entries for " + arrKeys.Count + " Requirements");
+            genTable.SetGridContent(astrGrid, nCount + " Log Entries for " + nReqCount + " Requirements");
             genTable.Show();
         }
 
@@ -355,8 +438,10 @@ namespace ReqDBBrowser
             List<string> colTraceFrom;
             ReqProRequirementPrx.eTraceAbortReason eAbortReason = ReqProRequirementPrx.eTraceAbortReason.eNoAbort;
 
+            if (!ToContinueAfterFilter(true, false))
+                return;
 
-            genTable = new FormGenericTable("Requirements - Package: " + strTreePathName, null, null);
+            genTable = new FormGenericTable("Requirements - Package: " + strTreePathName, null, null, FormGenericTableLayout.eFormGenericTableToken.eReqDetails);
             nCount = 0;
 
             /* at least we have: Tag, Name, Text, Version, Date, User,  */
@@ -384,51 +469,55 @@ namespace ReqDBBrowser
                 rowCells = new string [rowHdrCells.Count];
 
                 rpxReq = reqDBBrowser.GetRequirementPrx(nKey);
-                rowCells [0] = rpxReq.Tag;
-                rowCells [1] = rpxReq.Name;
-                rowCells [2] = rpxReq.Text;
-                rowCells[3] = rpxReq.VersionNumber;
-                rowCells[4] = rpxReq.VersionDateTime;
-                rowCells[5] = rpxReq.VersionUser;
-                rowCells[6] = rpxReq.PackagePathName;
-                rowCells[7] = rpxReq.PackageName;
 
-                nColCount = rpxReq.GetAttributes(out astrCol, out astrValue);
-
-                for (int i=0; i<nColCount; i++)
+                if (!listnReqTypeRootKeyExcl.Contains(rpxReq.ReqTypeKey))
                 {
-                    nColIdx = rowHdrCells.IndexOf(astrCol[i]);
-                    if (nColIdx == -1)
+                    rowCells[0] = rpxReq.Tag;
+                    rowCells[1] = rpxReq.Name;
+                    rowCells[2] = rpxReq.Text;
+                    rowCells[3] = rpxReq.VersionNumber;
+                    rowCells[4] = rpxReq.VersionDateTime;
+                    rowCells[5] = rpxReq.VersionUser;
+                    rowCells[6] = rpxReq.PackagePathName;
+                    rowCells[7] = rpxReq.PackageName;
+
+                    nColCount = rpxReq.GetAttributes(out astrCol, out astrValue);
+
+                    for (int i = 0; i < nColCount; i++)
                     {
-                        int nOldCnt = rowHdrCells.Count;
-                        string[] rowCellsOld = rowCells;
-                        rowCells = new string[nOldCnt + 1];
-                        rowHdrCells.Add(astrCol[i]);
-                        for (int j=0; j < nOldCnt; j++)
-                            rowCells[j] = rowCellsOld[j];
-                        nColIdx = rowHdrCells.Count - 1;
+                        nColIdx = rowHdrCells.IndexOf(astrCol[i]);
+                        if (nColIdx == -1)
+                        {
+                            int nOldCnt = rowHdrCells.Count;
+                            string[] rowCellsOld = rowCells;
+                            rowCells = new string[nOldCnt + 1];
+                            rowHdrCells.Add(astrCol[i]);
+                            for (int j = 0; j < nOldCnt; j++)
+                                rowCells[j] = rowCellsOld[j];
+                            nColIdx = rowHdrCells.Count - 1;
+                        }
+                        rowCells[nColIdx] = astrValue[i];
+                        if (rowCells[nColIdx] == null)
+                            rowCells[nColIdx] = "";
+                        System.Diagnostics.Trace.Write(rowHdrCells[nColIdx] + "(" + rowCells[nColIdx] + "); ");
                     }
-                    rowCells[nColIdx] = astrValue[i];
-                    if (rowCells[nColIdx] == null)
-                        rowCells[nColIdx] = "";
-                    System.Diagnostics.Trace.Write(rowHdrCells[nColIdx] + "(" + rowCells[nColIdx] + "); ");
+
+                    aastrCells.Add(rowCells);
+                    arpxReqTracesTo = rpxReq.GetRequirementTracesTo(20, ref eAbortReason, out nTraceCountTo, null);
+                    arpxReqTracesFrom = rpxReq.GetRequirementTracesFrom(20, ref eAbortReason, out nTraceCountFrom, null);
+                    reqTN = new ReqTraceGrid.ReqTraceNode(rpxReq, 0, true, arpxReqTracesFrom, arpxReqTracesTo,
+                        nTraceCountFrom, nTraceCountTo, eAbortReason);
+
+                    reqTN.GetTraceFromString(out listTrace);
+                    arrStringTrace = listTrace.ToArray();
+                    colTraceFrom.Add(string.Join("\n", arrStringTrace));
+
+                    reqTN.GetTraceToString(out listTrace);
+                    arrStringTrace = listTrace.ToArray();
+                    colTraceTo.Add(string.Join("\n", arrStringTrace));
+
+                    nCount++;
                 }
-
-                aastrCells.Add(rowCells);
-                arpxReqTracesTo = rpxReq.GetRequirementTracesTo(20, ref eAbortReason, out nTraceCountTo, null);
-                arpxReqTracesFrom = rpxReq.GetRequirementTracesFrom(20, ref eAbortReason, out nTraceCountFrom, null);
-                reqTN = new ReqTraceGrid.ReqTraceNode(rpxReq, 0, true, arpxReqTracesFrom, arpxReqTracesTo, 
-                    nTraceCountFrom, nTraceCountTo, eAbortReason);
-
-                reqTN.GetTraceFromString(out listTrace);
-                arrStringTrace = listTrace.ToArray();
-                colTraceFrom.Add(string.Join("\n", arrStringTrace));
-
-                reqTN.GetTraceToString(out listTrace);
-                arrStringTrace = listTrace.ToArray();
-                colTraceTo.Add(string.Join("\n", arrStringTrace));
-
-                nCount++;
             }
 
             aastrCells.Insert (0, rowHdrCells.ToArray());
@@ -452,8 +541,22 @@ namespace ReqDBBrowser
                 astrGrid[i, j + 1] = colTraceFrom[i];
             }
 
-            genTable.SetGridContent(astrGrid, arrKeys.Count + " Requirements");
+            genTable.SetGridContent(astrGrid, nCount + " Requirements");
             genTable.Show();
+        }
+
+        private void FindRequirement(ArrayList arrKeys, string strTreePathName)
+        {
+            FormFind formFind = new FormFind();
+            if (formFind.ShowDialog () == DialogResult.OK)
+            {
+                ReqProProject.SearchResult [][] searchResult;
+
+                reqDBBrowser.FindRequirements(arrKeys, formFind.SearchExpr,
+                    formFind.UseRegEx, formFind.SearchTag, formFind.SearchName, formFind.SearchText, true,
+                    out searchResult);
+            }
+
         }
 
         private void tabPageTree_Paint(object sender, PaintEventArgs e)
@@ -520,7 +623,7 @@ namespace ReqDBBrowser
                     {
                         ArrayList arrReq = new ArrayList();
                         arrReq.Add(nKey);
-                        DoRequirementTraces(arrReq, "");
+                        DoRequirementTraces(arrReq, "", false);
                         bDoImplicitSelect = true;
                     }
                     break;
@@ -544,7 +647,9 @@ namespace ReqDBBrowser
                 "Refresh",
                 "",
                 "View Log",
-                "View Requirements"
+                "View Requirements",
+                "",
+                "Find..."
             };
         }
 
@@ -556,7 +661,7 @@ namespace ReqDBBrowser
             switch (nMenuItem)
             {
                 case 0:
-                    DoRequirementTraces(arrReqKeys, strTreePathName);
+                    DoRequirementTraces(arrReqKeys, strTreePathName, true);
                     bDoImplicitSelect = true;
                     break;
                 case 1:
@@ -568,6 +673,9 @@ namespace ReqDBBrowser
                     break;
                 case 4:
                     ShowRequirements(arrReqKeys, strTreePathName);
+                    break;
+                case 6:
+                    FindRequirement(arrReqKeys, strTreePathName);
                     break;
                 default:
                     MessageBox.Show("Package " + strMenuText + " not yet implemented");

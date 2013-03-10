@@ -34,6 +34,7 @@ namespace ReqDBBrowser
             this.toolStripButtonExcelExport = new System.Windows.Forms.ToolStripButton();
             this.statusStrip = new System.Windows.Forms.StatusStrip();
             this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
+            this.toolStripStatusLabelHiddenCols = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripMain.SuspendLayout();
             this.statusStrip.SuspendLayout();
             this.SuspendLayout();
@@ -72,7 +73,8 @@ namespace ReqDBBrowser
             // statusStrip
             // 
             this.statusStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.toolStripStatusLabel1});
+            this.toolStripStatusLabel1,
+            this.toolStripStatusLabelHiddenCols});
             this.statusStrip.Location = new System.Drawing.Point(0, 453);
             this.statusStrip.Name = "statusStrip";
             this.statusStrip.Size = new System.Drawing.Size(517, 22);
@@ -85,6 +87,12 @@ namespace ReqDBBrowser
             this.toolStripStatusLabel1.Size = new System.Drawing.Size(46, 17);
             this.toolStripStatusLabel1.Text = "MyText";
             // 
+            // toolStripStatusLabelHiddenCols
+            // 
+            this.toolStripStatusLabelHiddenCols.Name = "toolStripStatusLabelHiddenCols";
+            this.toolStripStatusLabelHiddenCols.Size = new System.Drawing.Size(106, 17);
+            this.toolStripStatusLabelHiddenCols.Text = "0 Hidden Columns";
+            // 
             // FormGenericTable
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -95,6 +103,7 @@ namespace ReqDBBrowser
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "FormGenericTable";
             this.Text = "FormGenericTable";
+            this.Move += new System.EventHandler(this.FormGenericTable_Move);
             this.Resize += new System.EventHandler(this.FormGenericTable_Resize);
             this.toolStripMain.ResumeLayout(false);
             this.toolStripMain.PerformLayout();
@@ -112,6 +121,7 @@ namespace ReqDBBrowser
         private System.Windows.Forms.ToolStripButton toolStripButtonClose;
         private System.Windows.Forms.StatusStrip statusStrip;
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel1;
+        private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabelHiddenCols;
 
 
     }

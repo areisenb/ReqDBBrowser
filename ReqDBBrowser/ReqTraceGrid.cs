@@ -212,6 +212,7 @@ namespace ReqDBBrowser
         int nMaxFromTraceHops;
         int nMaxToTraceHops;
         List<ReqTraceNode>[] grid;
+        List<int> listnReqTypeTracedKeyExcl;
         System.Collections.Generic.Dictionary <int, ReqTraceNode> dictReqKey;
         const ulong ulLevelMultiplier = 20UL;
         public delegate bool ShowProgressReqTraceGrid(int nAddReq, int nReadReq, string strLog);
@@ -219,13 +220,15 @@ namespace ReqDBBrowser
 
         
         public ReqTraceGrid(int nMaxLevelFrom, int nMaxLevelTo, int nMaxTraceCount, 
-            int nMaxFromTraceHops, int nMaxToTraceHops, ShowProgressReqTraceGrid showProgressReqTraceGrid)
+            int nMaxFromTraceHops, int nMaxToTraceHops, 
+            List<int> listnReqTypeTracedKeyExcl, ShowProgressReqTraceGrid showProgressReqTraceGrid)
         {
             this.nMaxLevelFrom = nMaxLevelFrom;
             this.nMaxLevelTo = nMaxLevelTo;
             this.nMaxTraceCount = nMaxTraceCount;
             this.nMaxFromTraceHops = nMaxFromTraceHops;
             this.nMaxToTraceHops = nMaxToTraceHops;
+            this.listnReqTypeTracedKeyExcl = listnReqTypeTracedKeyExcl;
             grid = new List<ReqTraceNode>[nMaxLevelFrom + nMaxLevelTo + 1];
             for (int i=0; i<(nMaxLevelFrom+nMaxLevelTo+1); i++)
                 grid[i] = new List<ReqTraceNode>();
@@ -269,6 +272,8 @@ namespace ReqDBBrowser
             ReqProRequirementPrx reqReqPrxTracesPreceder)
         {
             ReqTraceNode reqTraceNode;
+            ReqProRequirementPrx.eTraceAbortReason eAbort = ReqProRequirementPrx.eTraceAbortReason.eNoAbort;
+
             if (dictReqKey.ContainsKey (reqReqPrx.Key))
             {
                 if (reqReqPrxTracesPreceder == null)
@@ -279,7 +284,14 @@ namespace ReqDBBrowser
                 return;
             }
 
-            ReqProRequirementPrx.eTraceAbortReason eAbort = ReqProRequirementPrx.eTraceAbortReason.eNoAbort;
+            if (reqReqPrxTracesPreceder != null)
+                if (listnReqTypeTracedKeyExcl.Contains (reqReqPrx.ReqTypeKey))
+                {
+                    eAbort |= ReqProRequirementPrx.eTraceAbortReason.eReqTypeFilter;
+                    showProgressReqTraceGrid(0, 0, "Filtered: " + reqReqPrx.Tag);
+                    return;
+                }
+
             int nTracesTo;
             int nTracesFrom;
             ReqProRequirementPrx[] aTracesTo;
