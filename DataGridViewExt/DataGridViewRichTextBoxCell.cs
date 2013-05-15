@@ -154,7 +154,8 @@ namespace DataGridViewExt
             }
         }
 
-        protected override void OnMouseClick(DataGridViewCellMouseEventArgs e)
+/*      does not work - do not know why - do not need it :-)
+ *      protected override void OnMouseClick(DataGridViewCellMouseEventArgs e)
         {
             base.OnMouseClick(e);
             if (base.DataGridView != null)
@@ -174,6 +175,7 @@ namespace DataGridViewExt
                 }
             }
         }
+ * */
 
         public override bool KeyEntersEditMode(KeyEventArgs e)
         {

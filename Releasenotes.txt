@@ -1,3 +1,37 @@
+	2013-05-15
+	Bugfix: Trace ending at an already traced item will refresh traced item if better counters - still not fixed completely
+	
+	2013-05-02...
+	Feature Extension: integrated graphviz tool for rendering trace relations - requires installation of graphviz tools via
+		http://www.graphviz.org/pub/graphviz/stable/windows/graphviz-2.30.1.msi
+	
+	2013-04-05
+	Usability: Context Menu in TreeView - copy with submenus
+	Usability: QuickSearch Activation at <ENTER>
+	Usability: added "collapse all others" to treeview
+	
+	2013-03-21
+	Feature Extension: Support for Child Requirements
+		Support in treeview refresh package, traces (parent TO children, child FROM parent)
+		Support in TreeView initial load - disabled!!! Performance too low
+
+REV 0.1.0.0
+	2013-03-16
+	Feature Extension: Possibility to view Requirements & Req Logs at Search, Quick Search & Trace Table via context menu
+	
+	2013-03-15
+	ReqPro 7.1.1.4 compatibility Issues fixed:
+		Consistently use ReqPro40.Project___v7 instead of ReqPro40.Project
+		
+	2013-03-14
+	Feature Extension: Search and Quick Search
+	ReqPro 7.1.1.4 compatibility Issues:
+		Used ReqPro40.Project___v7 instead of ReqPro40.Project
+		Used ReqPro40.Requirement___v6 instead of ReqPro40.Requirement
+		Used ReqPro40.Application___v4 instead of ReqPro40.Application
+		Used ReqPro40.Package___v1 instead of ReqPro40.Package
+		Used ReqPro40.RootPackage___v1 instead of ReqPro40.RootPackage
+	
 	2013-03-10
 	Feature Extension: Provide Filter for "View Requirements", "Requirements Log"
 

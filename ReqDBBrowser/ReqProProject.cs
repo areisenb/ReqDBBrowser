@@ -17,8 +17,8 @@ namespace ReqDBBrowser
             stParsed
         };
 
-        ReqPro40.Application rpxApplication;
-        ReqPro40.Project rpxProject;
+        ReqPro40.Application___v4 rpxApplication;
+        ReqPro40.Project___v7 rpxProject;
         private System.Collections.ArrayList arpxRelProjects;
         ReqPro40.Catalog rpxCatalog;
 
@@ -72,6 +72,29 @@ namespace ReqDBBrowser
             }
         }
 
+        public class ReqProException : Exception
+        {
+            public enum ESeverity
+            {
+                eWarning,
+                eError,
+                eFatal
+            }
+
+            ESeverity eSeverity;
+
+            public ReqProException(ESeverity eSeverity, string strMessage, Exception InnerException):
+                base(strMessage, InnerException)
+            {
+                this.eSeverity = eSeverity;
+            }
+
+            public ESeverity Severity
+            {
+                get { return eSeverity; }
+            }
+        }
+
         public ReqProProject (IReqProProjectCb cb)
         {
             state = eState.stDisc;
@@ -79,13 +102,9 @@ namespace ReqDBBrowser
 
             try
             {
-                //MessageBox.Show("Ctor of ReqProProject");
                 arpxRelProjects = new System.Collections.ArrayList();
-                //MessageBox.Show("Empty List of Related Projects created");
-                rpxApplication = new ReqPro40.Application();
-                //MessageBox.Show("rpxApplication created");
+                rpxApplication = (ReqPro40.Application___v4)new ReqPro40.Application();
                 rpxCatalog = rpxApplication.PersonalCatalog;
-                //MessageBox.Show("RPX Catalog created");
             }
             catch (System.Runtime.InteropServices.COMException e)
             {
@@ -94,8 +113,8 @@ namespace ReqDBBrowser
             }
             catch (Exception e)
             {
-                MessageBox.Show(e.Message + "\r\n\r\nStack: " + e.StackTrace + "\r\n\r\nin: " + e.TargetSite, 
-                    "Error", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Error);
+                throw new ReqProException (ReqProException.ESeverity.eFatal, 
+                    "Compiled against ReqPro40 Version 7.1.1.5\n\n" + e.Message, e);
             }
         }
 
@@ -142,7 +161,7 @@ namespace ReqDBBrowser
                     CloseProject();
                 }
                 cb.ShowProgressOpenProject("Opening " + strProject);
-                rpxProject = rpxApplication.OpenProject(strProject,
+                rpxProject = (ReqPro40.Project___v7) rpxApplication.OpenProject(strProject,
                     ReqPro40.enumOpenProjectOptions.eOpenProjOpt_RQSFile,
                     strUser,
                     strPassword,
@@ -161,7 +180,7 @@ namespace ReqDBBrowser
                 cb.ShowProgressOpenProject("Related Projects to be opened: " + nCountRelPrj);
 
                 ReqPro40.RelatedProjectContext rpxRelPrjCtx;
-                ReqPro40.Project rpxRelPrj;
+                ReqPro40.Project___v7 rpxRelPrj;
 
                 for (int i = 0; i < nCountRelPrj; i++)
                 {
@@ -176,7 +195,7 @@ namespace ReqDBBrowser
                             try
                             {
                                 cb.ShowProgressOpenProject("Opening: " + rpxRelPrjCtx.get_Name());
-                                rpxRelPrj = rpxRelPrjCtx.OpenProject(strRelPrjUser, strRelPrjPassword);
+                                rpxRelPrj = (ReqPro40.Project___v7)rpxRelPrjCtx.OpenProject(strRelPrjUser, strRelPrjPassword);
                                 cb.ShowProgressOpenProject("Opened: " + rpxRelPrj.Name);
                             }
                             catch (System.Runtime.InteropServices.COMException e)
@@ -197,7 +216,7 @@ namespace ReqDBBrowser
                         }
                     else
                     {
-                        rpxRelPrj = rpxRelPrjCtx.ThisProject;
+                        rpxRelPrj = (ReqPro40.Project___v7)rpxRelPrjCtx.ThisProject;
                         cb.ShowProgressOpenProject("Already opened: " + rpxRelPrj.Name);
                     }
 
@@ -238,14 +257,14 @@ namespace ReqDBBrowser
 
         public ReqTreeNode ReadReqTree(out int nPackageCount)
         {
-            ReqPro40.Package rpxPackage;
-            ReqPro40.RootPackage rpxRootPackage;
+            ReqPro40.Package___v1 rpxPackage;
+            ReqPro40.RootPackage___v1 rpxRootPackage;
             ReqTreeNode reqRootTreeNode;
 
             int nPackageRead = 0;
 
             cb.ShowProgressReqPkgTree(0, 0, 0, 0, "Identifying Packages");
-            rpxRootPackage = rpxProject.GetRootPackage(true);
+            rpxRootPackage = (ReqPro40.RootPackage___v1)rpxProject.GetRootPackage(true);
             object[,] o = (object[,])rpxRootPackage.
                 FindPackageElements(ReqPro40.enumElementTypes.eElemType_Package,
                     "*", 0, ReqPro40.enumElementTypes.eElemType_Package, false);
@@ -262,7 +281,7 @@ namespace ReqDBBrowser
             rpxRootPackage.MoveFirst();
             while (!rpxRootPackage.IsEOF)
             {
-                rpxPackage = (ReqPro40.Package)rpxRootPackage.GetCurrentElement();
+                rpxPackage = (ReqPro40.Package___v1)rpxRootPackage.GetCurrentElement();
                 ReadReqTreeNode(rpxPackage, ref reqRootTreeNode, ref nPackageRead);
                 rpxRootPackage.MoveNext();
             }
@@ -274,10 +293,10 @@ namespace ReqDBBrowser
             return reqRootTreeNode;
         }
 
-        private void ReadReqTreeNode(ReqPro40.Package rpxPackage, ref ReqTreeNode reqParentTreeNode, 
+        private void ReadReqTreeNode(ReqPro40.Package___v1 rpxPackage, ref ReqTreeNode reqParentTreeNode, 
             ref int nPackageRead)
         {
-            ReqPro40.Package rpxChildPackage;
+            ReqPro40.Package___v1 rpxChildPackage;
             ReqTreeNode reqMyTreeNode;
 
             reqMyTreeNode = new ReqTreeNode(rpxPackage.Name, rpxPackage.key, ReqTreeNode.eReqTreeNodeType.eTreeNodePkg);
@@ -288,7 +307,7 @@ namespace ReqDBBrowser
             rpxPackage.MoveFirst();
             while (!rpxPackage.IsEOF)
             {
-                rpxChildPackage = (ReqPro40.Package)rpxPackage.GetCurrentElement();
+                rpxChildPackage = (ReqPro40.Package___v1)rpxPackage.GetCurrentElement();
                 ReadReqTreeNode(rpxChildPackage, ref reqMyTreeNode, ref nPackageRead);
                 rpxPackage.MoveNext();
             }
@@ -302,12 +321,12 @@ namespace ReqDBBrowser
 
         public ReqTreeNode ReadReqTree(out int nPackageCount, int nStartKey)
         {
-            ReqPro40.Package rpxPkg;
+            ReqPro40.Package___v1 rpxPkg;
             // root is just a dummy - will not be used at the end
             ReqTreeNode reqDummy = new ReqTreeNode ("", 0, ReqTreeNode.eReqTreeNodeType.eTreeNodeRoot);
 
             nPackageCount = 0;
-            rpxPkg = rpxProject.GetPackage (nStartKey, ReqPro40.enumPackageWeights.ePackageWeight_Empty);
+            rpxPkg = (ReqPro40.Package___v1)rpxProject.GetPackage(nStartKey, ReqPro40.enumPackageWeights.ePackageWeight_Empty);
             rpxPkg.Refresh(ReqPro40.enumPackageWeights.ePackageWeight_Package, true);
             ReadReqTreeNode(rpxPkg, ref reqDummy, ref nPackageCount);
             ParseRequirements(rpxPkg, reqDummy[0]);
@@ -317,11 +336,18 @@ namespace ReqDBBrowser
         private void ParseRequirements()
         {
             ReqPro40.Requirements rpxReqColl;
-            ReqPro40.Requirement rpxReq;
+            ReqPro40.Requirement___v6 rpxReq;
+            ReqPro40.Relationship reqRelParent;
+
             int nReqCount;
             ReqTreeNode tnPackage;
             ReqTreeNode reqMyTreeNode;
+            List<ReqTreeNode> reqUnassigned;
+            Dictionary<int, ReqTreeNode> dictReq;
             int i = 0;
+
+            reqUnassigned = new List<ReqTreeNode>();
+            dictReq = new Dictionary<int, ReqTreeNode>();
 
             cb.ShowProgressReqPkgTree(0, 0, 0, 0, "Identifying Requirements");
             rpxReqColl = rpxProject.GetRequirements("*", ReqPro40.enumRequirementsLookups.eReqsLookup_All,
@@ -333,7 +359,7 @@ namespace ReqDBBrowser
             foreach (object o in rpxReqColl)
             {
                 Tracer tracer = new Tracer("Req (Key: " + o + ") from Req Coll");
-                rpxReq = rpxReqColl[o, ReqPro40.enumRequirementLookups.eReqLookup_Key];
+                rpxReq = (ReqPro40.Requirement___v6)rpxReqColl[o, ReqPro40.enumRequirementLookups.eReqLookup_Key];
                 tracer.Stop("Req " + rpxReq.get_Tag(ReqPro40.enumTagFormat.eTagFormat_Tag) +
                     " got via eReqLookup_Key from Requirements Collection");
                 try
@@ -345,22 +371,58 @@ namespace ReqDBBrowser
                     reqMyTreeNode = new ReqTreeNode
                         (rpxReq.get_Tag(ReqPro40.enumTagFormat.eTagFormat_Tag)+": "+rpxReq.Name,
                          rpxReq.key, ReqTreeNode.eReqTreeNodeType.eTreeNodeReq);
-                    if (tnPackage != null)
-                        tnPackage.Add(ref reqMyTreeNode);
+                    if (rpxReq.IsRoot)
+                    {
+                        if (tnPackage != null)
+                            tnPackage.Add(ref reqMyTreeNode);
+                        dictReq.Add(rpxReq.key, reqMyTreeNode);
+                    }
+                    else
+                    {
+                        //Tracer tr = new Tracer("Parent of " + reqMyTreeNode.Text + " discovering");
+
+                        // performance is too low for that step :-(
+                        //reqRelParent = rpxReq.get_Parent(ReqPro40.enumRequirementsWeights.eReqWeight_Medium);
+                        //reqMyTreeNode.Parent = reqRelParent.SourceKey;
+                        //reqUnassigned.Add(reqMyTreeNode);
+                        //tr.Stop("Parent of " + reqMyTreeNode.Text + " discovered");
+
+                        if (tnPackage != null)
+                            tnPackage.Add(ref reqMyTreeNode);
+                        dictReq.Add(rpxReq.key, reqMyTreeNode);
+                    }
+
                 }
                 catch (Exception)
                 {
                 }
-
             }
+
+            Tracer trCleanup = new Tracer("Cleanup Children Requirements");
+            while (reqUnassigned.Count > 0)
+                for (int j=0; j<reqUnassigned.Count; j++)
+                {
+                    reqMyTreeNode = reqUnassigned[j];
+                    if (dictReq.ContainsKey(reqMyTreeNode.Parent))
+                    {
+                        tnPackage = dictReq[reqMyTreeNode.Parent];
+
+                        tnPackage.Add(ref reqMyTreeNode);
+                        dictReq.Add(reqMyTreeNode.Key, reqMyTreeNode);
+                        reqUnassigned.Remove(reqMyTreeNode);
+                        j--;
+                    }
+                }
+            trCleanup.Stop("Cleanup Children Requirements");
+
             cb.ShowProgressReqPkgTree(0, 0, 0, 0, i + " Requirements inserted");
             cb.ShowProgressReqPkgTree(0, 0, 0, 0, null);
         }
 
-        private void ParseRequirements(ReqPro40.Package rpxPkg, ReqTreeNode tn)
+        private void ParseRequirements(ReqPro40.Package___v1 rpxPkg, ReqTreeNode tn)
         {
-            ReqPro40.Requirement rpxReq;
-            ReqPro40.Package rpxPkgChild;
+            ReqPro40.Requirement___v6 rpxReq;
+            ReqPro40.Package___v1 rpxPkgChild;
             ReqTreeNode tnPkgChild;
             ReqTreeNode tnReqNew;
             int nKey;
@@ -377,6 +439,7 @@ namespace ReqDBBrowser
                         (rpxReq.get_Tag(ReqPro40.enumTagFormat.eTagFormat_Tag) + ": " + rpxReq.Name,
                          rpxReq.key, ReqTreeNode.eReqTreeNodeType.eTreeNodeReq);
                     tn.Add(ref tnReqNew);
+                    ParseReqChildren (rpxReq, tnReqNew);
                 }
             }
 
@@ -385,18 +448,41 @@ namespace ReqDBBrowser
                 tnPkgChild = tn[i];
                 if (tnPkgChild.IsPackage())
                 {
-                    rpxPkgChild = rpxProject.GetPackage(tnPkgChild.Key, ReqPro40.enumPackageWeights.ePackageWeight_Empty);
+                    rpxPkgChild = (ReqPro40.Package___v1)rpxProject.GetPackage(tnPkgChild.Key, ReqPro40.enumPackageWeights.ePackageWeight_Empty);
                     //tnPkgChild = (ReqTreeNode)dictPackage[rpxPkgChild.PackageKey];
                     ParseRequirements(rpxPkgChild, tnPkgChild);
                 }
             }
         }
 
-        public ReqPro40.Requirement GetRequirement(int nKey)
+        private void ParseReqChildren(ReqPro40.Requirement___v6 rpxReq, ReqTreeNode tn)
         {
-            if (this.state == eState.stParsed)
+            ReqPro40.Relationships rpxReqChildrenRelation;
+            ReqPro40.Requirement___v6 rpxReqChild;
+            ReqTreeNode tnReqNew;
+            int nChildCount;
+            
+            rpxReqChildrenRelation = rpxReq.Children;
+            nChildCount = rpxReqChildrenRelation.Count;
+            rpxReqChildrenRelation.MoveFirst ();
+
+            for (int i = 0; i < nChildCount; i++)
             {
-                return rpxProject.GetRequirement
+                rpxReqChild = GetRequirement(rpxReqChildrenRelation.ItemCurrent.DestinationKey);
+                tnReqNew = new ReqTreeNode
+                    (rpxReqChild.get_Tag(ReqPro40.enumTagFormat.eTagFormat_Tag) + ": " + rpxReqChild.Name,
+                     rpxReqChild.key, ReqTreeNode.eReqTreeNodeType.eTreeNodeReq);
+                ParseReqChildren(rpxReqChild, tnReqNew);
+                tn.Add(ref tnReqNew);
+                rpxReqChildrenRelation.MoveNext();
+            }
+        }
+
+        public ReqPro40.Requirement___v6 GetRequirement(int nKey)
+        {
+            //if (this.state == eState.stParsed)
+            {
+                return (ReqPro40.Requirement___v6)rpxProject.GetRequirement
                     (nKey, ReqPro40.enumRequirementLookups.eReqLookup_Key,
                      ReqPro40.enumRequirementsWeights.eReqWeight_Medium,
                      ReqPro40.enumRequirementFlags.eReqFlag_Empty);
@@ -423,11 +509,11 @@ namespace ReqDBBrowser
             aanReqTypeKey = new int[nRelPrjCnt][];
 
             for (int i=0; i < nRelPrjCnt; i++)
-                GetProjectReqType((ReqPro40.Project)arpxRelProjects[i], 
+                GetProjectReqType((ReqPro40.Project___v7)arpxRelProjects[i], 
                     out astrPrjPrefix[i], out aastrReqType[i], out aanReqTypeKey[i]);
         }
 
-        private void GetProjectReqType(ReqPro40.Project rpxPrj, out string strPrjPrefix,
+        private void GetProjectReqType(ReqPro40.Project___v7 rpxPrj, out string strPrjPrefix,
             out string[] astrReqType, out int[] anReqTypeKey)
         {
             int nCount;
@@ -450,13 +536,13 @@ namespace ReqDBBrowser
         public void FindRequirements(ArrayList anKeys, string strSearchExpr, bool bUseRegEx,
                     bool bSearchTag, bool bSearchName, bool bSearchText, 
                     bool bIgnoreCase,
-                    out SearchResult [] [] searchResult)
+                    out SearchResult [] [] searchResult, out int [] anKeysOut)
         {
             ReqProRequirementPrx reqPrx;
             bool bFound;
             SearchResult [] res;
             string strCmpStr;
-            ArrayList anKeysOut = new ArrayList();
+            ArrayList listKeysOut = new ArrayList();
             List <SearchResult[]> listSResult = new List<SearchResult[]>();
 
             res = new SearchResult [3];
@@ -486,16 +572,20 @@ namespace ReqDBBrowser
                         bFound |= FindInText (ref res[2], strCmpStr, bUseRegEx, bIgnoreCase);
                     if (bFound)
                     {
-                        anKeysOut.Add (nKey);
+                        listKeysOut.Add (nKey);
                         listSResult.Add (res);
                         res = new SearchResult[3];
                     }
                 }
             }
             searchResult = listSResult.ToArray();
+
+            anKeysOut = new int[listKeysOut.Count];
+            for (int i = 0; i < listKeysOut.Count; i++)
+                anKeysOut[i] = (int)listKeysOut[i];
         }
 
-        private static bool FindInText (ref SearchResult searchResult, string strSearchExpr, 
+        private static bool FindInText(ref SearchResult searchResult, string strSearchExpr, 
             bool bUseRegEx, bool bIgnoreCase)
         {
             int nIdx=-1;

@@ -26,6 +26,7 @@ namespace ReqDBBrowser
         {
             string [] astrMenuItems;
             ToolStripMenuItem tsMnuItem;
+            ToolStripMenuItem tsMnuSubItem;
             int i;
 
             this.cb = cb;
@@ -52,16 +53,18 @@ namespace ReqDBBrowser
             mnuCtxPkg.Items.Add(tsMnuItem);
             tsMnuItem = new ToolStripMenuItem("expand all", null, mnuCtxExpandAll_Click);
             mnuCtxPkg.Items.Add(tsMnuItem);
-            mnuCtxPkg.Items.Add(new ToolStripSeparator());
-            tsMnuItem = new ToolStripMenuItem("copy Package Name", null, mnuCtxCpyPkgName_Click);
+            tsMnuItem = new ToolStripMenuItem("copy");
             mnuCtxPkg.Items.Add(tsMnuItem);
-            tsMnuItem = new ToolStripMenuItem("copy Package Name + Path", null, mnuCtxCpyPkgPath_Click);
-            mnuCtxPkg.Items.Add(tsMnuItem);
-            mnuCtxPkg.Items.Add(new ToolStripSeparator());
-            tsMnuItem = new ToolStripMenuItem("copy Package Name - recursive", null, mnuCtxCpyPkgNameRec_Click);
-            mnuCtxPkg.Items.Add(tsMnuItem);
-            tsMnuItem = new ToolStripMenuItem("copy Package Name Path - recursive", null, mnuCtxCpyPkgPathRec_Click);
-            mnuCtxPkg.Items.Add(tsMnuItem);
+
+            tsMnuSubItem = new ToolStripMenuItem("Package Name", null, mnuCtxCpyPkgName_Click);
+            tsMnuItem.DropDownItems.Add(tsMnuSubItem);
+            tsMnuSubItem = new ToolStripMenuItem("Package Name + Path", null, mnuCtxCpyPkgPath_Click);
+            tsMnuItem.DropDownItems.Add(tsMnuSubItem);
+            tsMnuSubItem = new ToolStripMenuItem("Recursive Package Name", null, mnuCtxCpyPkgNameRec_Click);
+            tsMnuItem.DropDownItems.Add(tsMnuSubItem);
+            tsMnuSubItem = new ToolStripMenuItem("Recursive Package Name + Path", null, mnuCtxCpyPkgPathRec_Click);
+            tsMnuItem.DropDownItems.Add(tsMnuSubItem);
+
 
             // Create the ContextMenuStrip for the requirements
             mnuCtxReq = new ContextMenuStrip();
@@ -73,6 +76,9 @@ namespace ReqDBBrowser
                 tsMnuItem.Tag = i++;
                 mnuCtxReq.Items.Add(tsMnuItem);
             }
+            mnuCtxReq.Items.Add(new ToolStripSeparator());
+            tsMnuItem = new ToolStripMenuItem("collapse all others", null, mnuCtxCollapseAllOthers_Click);
+            mnuCtxReq.Items.Add(tsMnuItem);
 
 
             // Assign the ImageList to the TreeView.
@@ -110,6 +116,14 @@ namespace ReqDBBrowser
         private void mnuCtxExpandAll_Click(object sender, EventArgs e)
         {
             ActiveNode.ExpandAll();
+        }
+
+        private void mnuCtxCollapseAllOthers_Click(object sender, EventArgs e)
+        {
+            int nKey = (int) ActiveNode.Tag;
+            foreach (TreeNode tn in Nodes)
+                tn.Collapse(false);
+            ShowNode(nKey);
         }
 
         private void mnuCtxCpyPkgName_Click(object sender, EventArgs e)
@@ -313,5 +327,36 @@ namespace ReqDBBrowser
             return bRet;
         }
 
+        public void FindRequirements(string strSearchExpr, out ReqDBBrowser.ReqProProject.SearchResult [] searchResult, out int [] anKeysFound)
+        {
+            List<ReqDBBrowser.ReqProProject.SearchResult> listSearchResult = new List<ReqProProject.SearchResult>();
+            List<int> listnKeys = new List<int>();
+            string strSearch = strSearchExpr.ToLower ();
+
+            foreach (TreeNode tn in Nodes)
+                FindRequirements(tn, strSearch, ref listSearchResult, ref listnKeys);
+
+            searchResult = listSearchResult.ToArray ();
+            anKeysFound = listnKeys.ToArray ();
+        }
+
+        private void FindRequirements (TreeNode tn, string strSearchExpr, 
+            ref List<ReqDBBrowser.ReqProProject.SearchResult> listSearchResult, ref List<int> listnKeysFound)
+        {
+            int nIdx = -1;
+            string strComp = tn.Text.ToLower();
+
+            nIdx = strComp.IndexOf(strSearchExpr);
+            if (nIdx >= 0)
+            {
+                ReqProProject.SearchResult sResult = new ReqProProject.SearchResult(tn.Text);
+                sResult.Index = nIdx;
+                sResult.Length = strSearchExpr.Length;
+                listSearchResult.Add(sResult);
+                listnKeysFound.Add((int)tn.Tag);
+            }
+            foreach (TreeNode tnChild in tn.Nodes)
+                FindRequirements(tnChild, strSearchExpr, ref listSearchResult, ref listnKeysFound);
+        }
     }
 }

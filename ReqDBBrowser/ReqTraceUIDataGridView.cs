@@ -195,16 +195,22 @@ namespace ReqDBBrowser
             nMnuItem = 0;
             foreach (string str in astrMnuEntry)
             {
-                tsMnuItem = new ToolStripMenuItem(str, null, mnuCtxRow_Click);
-                tsMnuItem.Tag = nMnuItem++;
-                mnuCtxRow.Items.Add(tsMnuItem);
+                if (str.Length > 0)
+                {
+                    tsMnuItem = new ToolStripMenuItem(str, null, mnuCtxRow_Click);
+                    tsMnuItem.Tag = nMnuItem;
+                    mnuCtxRow.Items.Add(tsMnuItem);
+                }
+                else
+                    mnuCtxRow.Items.Add(new ToolStripSeparator());
+                nMnuItem++;
             }
             mnuCtxRow.Items.Add(new ToolStripSeparator());
             mnuCtxRow.Items.Add(new ToolStripMenuItem("Copy", null, mnuCpy_Click));
 
         }
 
-        public void AddRow(ReqTraceGrid.ReqTraceNode reqTraceNode)
+        public void AddRow(ReqTraceNode reqTraceNode)
         {
             DataGridViewListBoxCell lbCell;
             DataGridViewRow row;

@@ -6,7 +6,7 @@ using System.Drawing;
 
 namespace ReqDBBrowser
 {
-    class ReqTraceUIGraphNode
+    class ReqTraceUIGraphNode: ReqTraceUIRendererNode
     {
         static Size sizeText = new Size(200, 100);
         static Size sizeTagName = new Size(200, 20);
@@ -21,18 +21,9 @@ namespace ReqDBBrowser
 
         List<ReqTraceUI> arrFGUI;
         List<ReqTraceUI> arrBGUI;
-        int nXPos;
-        int nYPos;
-        ReqTraceGrid.ReqTraceNode reqTraceNode;
+        ReqTraceNode reqTraceNode;
         TextBox tbReqTag;
         TextBox tbReqText;
-
-        public interface ITraceViewGraphCb
-        {
-            void GetTBTagCtxMenu(out string[] astrMnuEntry);
-            void GetTBNameCtxMenu(out string[] astrMnuEntry);
-            void TBMenuAction(int nActKey, int[] nSelKeys, int[] nMarkedKeys, int nMenuItem, bool bWasTBName, string strMenuText);
-        }
 
         public static void Init (Control.ControlCollection ctrls, ITraceViewGraphCb cb)
         {
@@ -130,7 +121,7 @@ namespace ReqDBBrowser
         }
 
         public ReqTraceUIGraphNode(int nYOffset,
-            ReqTraceGrid.ReqTraceNode reqTraceNode)
+            ReqTraceNode reqTraceNode): base (nYOffset, reqTraceNode)
         {
             TextBox tb;
             ToolTip tt;
@@ -139,8 +130,6 @@ namespace ReqDBBrowser
             int[] nTraceToX;
             int[] nTraceToY;
 
-            nXPos = reqTraceNode.X;
-            nYPos = nYOffset - reqTraceNode.Y;
             this.reqTraceNode = reqTraceNode;
 
             tb = new TextBox();

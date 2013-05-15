@@ -41,20 +41,26 @@ namespace ReqDBBrowser
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMain = new System.Windows.Forms.ToolStrip();
             this.toolStripButtonRefresh = new System.Windows.Forms.ToolStripButton();
+            this.tbQuickSearch = new System.Windows.Forms.ToolStripTextBox();
+            this.btQuickSearch = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
             this.toolStripLabel = new System.Windows.Forms.ToolStripLabel();
             this.toolStripLabelTraceRoot = new System.Windows.Forms.ToolStripLabel();
+            this.imageListReqTree = new System.Windows.Forms.ImageList(this.components);
             this.splitContainerMain = new System.Windows.Forms.SplitContainer();
             this.tabDetails = new System.Windows.Forms.TabControl();
             this.tabPageTable = new System.Windows.Forms.TabPage();
+            this.tabPageGraph = new System.Windows.Forms.TabPage();
+            this.webBrowserReqTraceGraph = new ReqDBBrowser.ZoomWebBrowser();
             this.tabPageTree = new System.Windows.Forms.TabPage();
-            this.imageListReqTree = new System.Windows.Forms.ImageList(this.components);
             this.tabPageSearchResults = new System.Windows.Forms.TabPage();
+            this.tabPageQuickSearchResults = new System.Windows.Forms.TabPage();
             this.menuStripMain.SuspendLayout();
             this.toolStripMain.SuspendLayout();
             this.splitContainerMain.Panel2.SuspendLayout();
             this.splitContainerMain.SuspendLayout();
             this.tabDetails.SuspendLayout();
+            this.tabPageGraph.SuspendLayout();
             this.SuspendLayout();
             // 
             // menuStripMain
@@ -131,6 +137,8 @@ namespace ReqDBBrowser
             // 
             this.toolStripMain.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.toolStripButtonRefresh,
+            this.tbQuickSearch,
+            this.btQuickSearch,
             this.toolStripSeparator2,
             this.toolStripLabel,
             this.toolStripLabelTraceRoot});
@@ -151,6 +159,23 @@ namespace ReqDBBrowser
             this.toolStripButtonRefresh.ToolTipText = "Refresh";
             this.toolStripButtonRefresh.Click += new System.EventHandler(this.toolStripButtonRefresh_Click);
             // 
+            // tbQuickSearch
+            // 
+            this.tbQuickSearch.Name = "tbQuickSearch";
+            this.tbQuickSearch.Size = new System.Drawing.Size(100, 25);
+            this.tbQuickSearch.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.tbQuickSearch_KeyPress);
+            // 
+            // btQuickSearch
+            // 
+            this.btQuickSearch.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.btQuickSearch.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.btQuickSearch.Name = "btQuickSearch";
+            this.btQuickSearch.Size = new System.Drawing.Size(80, 22);
+            this.btQuickSearch.Text = "Quick Search";
+            this.btQuickSearch.TextImageRelation = System.Windows.Forms.TextImageRelation.TextAboveImage;
+            this.btQuickSearch.ToolTipText = "searches case insensitive through the Requirement Tag and the Requirement Name";
+            this.btQuickSearch.Click += new System.EventHandler(this.btQuickSearch_Click);
+            // 
             // toolStripSeparator2
             // 
             this.toolStripSeparator2.Name = "toolStripSeparator2";
@@ -165,6 +190,15 @@ namespace ReqDBBrowser
             // 
             this.toolStripLabelTraceRoot.Name = "toolStripLabelTraceRoot";
             this.toolStripLabelTraceRoot.Size = new System.Drawing.Size(0, 22);
+            // 
+            // imageListReqTree
+            // 
+            this.imageListReqTree.ImageStream = ((System.Windows.Forms.ImageListStreamer)(resources.GetObject("imageListReqTree.ImageStream")));
+            this.imageListReqTree.TransparentColor = System.Drawing.Color.Transparent;
+            this.imageListReqTree.Images.SetKeyName(0, "Project.PNG");
+            this.imageListReqTree.Images.SetKeyName(1, "folder_closed.png");
+            this.imageListReqTree.Images.SetKeyName(2, "folder_open.png");
+            this.imageListReqTree.Images.SetKeyName(3, "Requirement.PNG");
             // 
             // splitContainerMain
             // 
@@ -182,8 +216,10 @@ namespace ReqDBBrowser
             // tabDetails
             // 
             this.tabDetails.Controls.Add(this.tabPageTable);
+            this.tabDetails.Controls.Add(this.tabPageGraph);
             this.tabDetails.Controls.Add(this.tabPageTree);
             this.tabDetails.Controls.Add(this.tabPageSearchResults);
+            this.tabDetails.Controls.Add(this.tabPageQuickSearchResults);
             this.tabDetails.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tabDetails.Location = new System.Drawing.Point(0, 0);
             this.tabDetails.Name = "tabDetails";
@@ -199,8 +235,31 @@ namespace ReqDBBrowser
             this.tabPageTable.Padding = new System.Windows.Forms.Padding(3);
             this.tabPageTable.Size = new System.Drawing.Size(632, 403);
             this.tabPageTable.TabIndex = 0;
-            this.tabPageTable.Text = "Table";
+            this.tabPageTable.Text = "Trace Table";
             this.tabPageTable.UseVisualStyleBackColor = true;
+            // 
+            // tabPageGraph
+            // 
+            this.tabPageGraph.Controls.Add(this.webBrowserReqTraceGraph);
+            this.tabPageGraph.Location = new System.Drawing.Point(4, 22);
+            this.tabPageGraph.Name = "tabPageGraph";
+            this.tabPageGraph.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPageGraph.Size = new System.Drawing.Size(632, 403);
+            this.tabPageGraph.TabIndex = 4;
+            this.tabPageGraph.Text = "Trace Graph";
+            this.tabPageGraph.UseVisualStyleBackColor = true;
+            this.tabPageGraph.Leave += new System.EventHandler(this.tabPageGraph_Leave);
+            this.tabPageGraph.Enter += new System.EventHandler(this.tabPageGraph_Enter);
+            // 
+            // webBrowserReqTraceGraph
+            // 
+            this.webBrowserReqTraceGraph.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.webBrowserReqTraceGraph.Location = new System.Drawing.Point(3, 3);
+            this.webBrowserReqTraceGraph.MinimumSize = new System.Drawing.Size(20, 20);
+            this.webBrowserReqTraceGraph.Name = "webBrowserReqTraceGraph";
+            this.webBrowserReqTraceGraph.Size = new System.Drawing.Size(626, 397);
+            this.webBrowserReqTraceGraph.TabIndex = 0;
+            this.webBrowserReqTraceGraph.Navigating += new System.Windows.Forms.WebBrowserNavigatingEventHandler(webBrowserReqTraceGraph_Navigating);
             // 
             // tabPageTree
             // 
@@ -210,20 +269,11 @@ namespace ReqDBBrowser
             this.tabPageTree.Padding = new System.Windows.Forms.Padding(3);
             this.tabPageTree.Size = new System.Drawing.Size(632, 403);
             this.tabPageTree.TabIndex = 1;
-            this.tabPageTree.Text = "Tree";
+            this.tabPageTree.Text = "Trace Graph (old)";
             this.tabPageTree.UseVisualStyleBackColor = true;
             this.tabPageTree.Paint += new System.Windows.Forms.PaintEventHandler(this.tabPageTree_Paint);
             this.tabPageTree.Scroll += new System.Windows.Forms.ScrollEventHandler(this.tabPageTree_Scroll);
             this.tabPageTree.ClientSizeChanged += new System.EventHandler(this.tabPageTree_ClientSizeChanged);
-            // 
-            // imageListReqTree
-            // 
-            this.imageListReqTree.ImageStream = ((System.Windows.Forms.ImageListStreamer)(resources.GetObject("imageListReqTree.ImageStream")));
-            this.imageListReqTree.TransparentColor = System.Drawing.Color.Transparent;
-            this.imageListReqTree.Images.SetKeyName(0, "Project.PNG");
-            this.imageListReqTree.Images.SetKeyName(1, "folder_closed.png");
-            this.imageListReqTree.Images.SetKeyName(2, "folder_open.png");
-            this.imageListReqTree.Images.SetKeyName(3, "Requirement.PNG");
             // 
             // tabPageSearchResults
             // 
@@ -234,6 +284,16 @@ namespace ReqDBBrowser
             this.tabPageSearchResults.TabIndex = 2;
             this.tabPageSearchResults.Text = "Search Results";
             this.tabPageSearchResults.UseVisualStyleBackColor = true;
+            // 
+            // tabPageQuickSearchResults
+            // 
+            this.tabPageQuickSearchResults.Location = new System.Drawing.Point(4, 22);
+            this.tabPageQuickSearchResults.Name = "tabPageQuickSearchResults";
+            this.tabPageQuickSearchResults.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPageQuickSearchResults.Size = new System.Drawing.Size(632, 403);
+            this.tabPageQuickSearchResults.TabIndex = 3;
+            this.tabPageQuickSearchResults.Text = "Quick Search Results";
+            this.tabPageQuickSearchResults.UseVisualStyleBackColor = true;
             // 
             // FormMain
             // 
@@ -248,6 +308,7 @@ namespace ReqDBBrowser
             this.Name = "FormMain";
             this.Text = "ReqDBBrowser";
             this.Load += new System.EventHandler(this.formMain_Load);
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.FormMain_FormClosing);
             this.menuStripMain.ResumeLayout(false);
             this.menuStripMain.PerformLayout();
             this.toolStripMain.ResumeLayout(false);
@@ -255,6 +316,7 @@ namespace ReqDBBrowser
             this.splitContainerMain.Panel2.ResumeLayout(false);
             this.splitContainerMain.ResumeLayout(false);
             this.tabDetails.ResumeLayout(false);
+            this.tabPageGraph.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -282,5 +344,10 @@ namespace ReqDBBrowser
         private System.Windows.Forms.ToolStripLabel toolStripLabel;
         private System.Windows.Forms.ToolStripLabel toolStripLabelTraceRoot;
         private System.Windows.Forms.TabPage tabPageSearchResults;
+        private System.Windows.Forms.ToolStripTextBox tbQuickSearch;
+        private System.Windows.Forms.ToolStripButton btQuickSearch;
+        private System.Windows.Forms.TabPage tabPageQuickSearchResults;
+        private System.Windows.Forms.TabPage tabPageGraph;
+        private ZoomWebBrowser webBrowserReqTraceGraph;
     }
 }

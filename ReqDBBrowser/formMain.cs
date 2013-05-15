@@ -11,7 +11,8 @@ namespace ReqDBBrowser
 {
     public partial class FormMain : Form, 
         ReqProProject.IReqProProjectCb, TreeViewReq.ITreeViewReqCb,
-        ReqTraceUIDataGridView.ITraceViewGridCb, ReqTraceUIGraphNode.ITraceViewGraphCb
+        ReqTraceUIDataGridView.ITraceViewGridCb, ReqTraceUIGraphNode.ITraceViewGraphCb,
+        ReqSearchUIDataGridView.ISearchResultViewGridCb
     {
         TreeViewReq treeViewRq;
         ReqProProject reqDBBrowser;
@@ -19,7 +20,12 @@ namespace ReqDBBrowser
         ReqTraceUIDataGridView dataGridReq;
         ReqTraceGrid reqTraceGrid;
         List<ReqTraceUIGraphNode> arrTraceGraphNode;
+        ReqTraceGraphDot reqTraceGraphDot;
+
         FormProgressReqTree formProgressReqTree;
+
+        ReqSearchUIDataGridView dgvSearchResult;
+        ReqSearchUIDataGridView dgvQuickSearchResult;
 
         TraceParameter tracePar;
         List<int> listnReqTypeTracedKeyExcl;
@@ -51,6 +57,8 @@ namespace ReqDBBrowser
             tracePar = new TraceParameter();
             listnReqTypeTracedKeyExcl = new List<int>();
             listnReqTypeRootKeyExcl = new List<int>();
+            tabDetails.TabPages.Remove(tabPageQuickSearchResults);
+            tabDetails.TabPages.Remove(tabPageSearchResults);
         }
 
         private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
@@ -169,6 +177,10 @@ namespace ReqDBBrowser
                 return;
 
             Cursor = Cursors.WaitCursor;
+
+            if ((tabDetails.SelectedTab != tabPageTree) && (tabDetails.SelectedTab != tabPageTable))
+                tabDetails.SelectedTab = tabPageTable;
+
             if (strTreePathName.Length == 0)
             {
                 reqReqPrx = reqDBBrowser.GetRequirementPrx((int)arrKeys[0]);
@@ -192,7 +204,7 @@ namespace ReqDBBrowser
             Cursor = Cursors.WaitCursor;
             PrepareDataGrid();
             PopulateDataGrid(tracePar.nUpCount, tracePar.nDownCount);
-            PopulateGraph(tracePar.nUpCount, tracePar.nDownCount);
+            PopulateGraph(strTreePathName, tracePar.nUpCount, tracePar.nDownCount);
             Invalidate();
             this.tabPageTree.Invalidate();
             Cursor = Cursors.Default;
@@ -282,7 +294,7 @@ namespace ReqDBBrowser
 
         void PopulateDataGrid(int nUpCount, int nDownCount)
         {
-            ReqTraceGrid.ReqTraceNode reqTraceNode;
+            ReqTraceNode reqTraceNode;
 
             for (int i = nUpCount; i >= -nDownCount; i--)
                 for (int j = 0; j < reqTraceGrid.GetElementCount (i); j++)
@@ -293,9 +305,16 @@ namespace ReqDBBrowser
                 }
         }
 
-        void PopulateGraph(int nUpCount, int nDownCount)
+        void webBrowserReqTraceGraph_Navigating(object sender, System.Windows.Forms.WebBrowserNavigatingEventArgs e)
         {
-            ReqTraceGrid.ReqTraceNode reqTraceNode;
+            //check for navigating to WebReqPro - cancel in that scenario
+            // by e.Cancel = true;
+        }
+
+        void PopulateGraph(string strGraphDesc, int nUpCount, int nDownCount)
+        {
+            reqTraceGraphDot = new ReqTraceGraphDot(strGraphDesc);
+            ReqTraceNode reqTraceNode;
 
             tabPageTree.Controls.Clear();
             arrTraceGraphNode.Clear();
@@ -307,8 +326,13 @@ namespace ReqDBBrowser
                 {
                     reqTraceNode = reqTraceGrid[i, k];
                     if (reqTraceNode != null)
-                        arrTraceGraphNode.Add (new ReqTraceUIGraphNode(nUpCount, reqTraceNode));
+                    {
+                        arrTraceGraphNode.Add(new ReqTraceUIGraphNode(nUpCount, reqTraceNode));
+                        reqTraceGraphDot.Add(new ReqTraceDotNode(nUpCount, reqTraceNode));
+                    }
                 }
+
+            webBrowserReqTraceGraph.Url = new Uri (reqTraceGraphDot.Export2svg());
         }
 
         private void ShowRequirementLog(int nKey)
@@ -351,7 +375,7 @@ namespace ReqDBBrowser
             genTable.Show();
         }
 
-        private void ShowRequirementsLog(ArrayList arrKeys, string strTreePathName)
+        private void ShowRequirementsLog(ArrayList arrKeys, string strTreePathName, bool bWithFilter)
         {
             ReqProRequirementPrx rpxReq;
             FormGenericTable genTable;
@@ -367,8 +391,9 @@ namespace ReqDBBrowser
             listTag = new List<string>();
             listName = new List<string>();
 
-            if (!ToContinueAfterFilter(true, false))
-                return;
+            if (bWithFilter)
+                if (!ToContinueAfterFilter(true, false))
+                    return;
 
             genTable = new FormGenericTable("Log - Package: " + strTreePathName, null, null, FormGenericTableLayout.eFormGenericTableToken.eReqLog);
 
@@ -412,7 +437,7 @@ namespace ReqDBBrowser
             genTable.Show();
         }
 
-        private void ShowRequirements(ArrayList arrKeys, string strTreePathName)
+        private void ShowRequirements(ArrayList arrKeys, string strTreePathName, bool bWithFilter)
         {
             ReqProRequirementPrx rpxReq;
             FormGenericTable genTable;
@@ -422,7 +447,7 @@ namespace ReqDBBrowser
             int nTraceCountFrom;
             ReqProRequirementPrx[] arpxReqTracesTo;
             ReqProRequirementPrx[] arpxReqTracesFrom;
-            ReqTraceGrid.ReqTraceNode reqTN;
+            ReqTraceNode reqTN;
             string[] arrStringTrace;
             List<string> listTrace = new List<string>();
 
@@ -438,8 +463,9 @@ namespace ReqDBBrowser
             List<string> colTraceFrom;
             ReqProRequirementPrx.eTraceAbortReason eAbortReason = ReqProRequirementPrx.eTraceAbortReason.eNoAbort;
 
-            if (!ToContinueAfterFilter(true, false))
-                return;
+            if (bWithFilter)
+                if (!ToContinueAfterFilter(true, false))
+                    return;
 
             genTable = new FormGenericTable("Requirements - Package: " + strTreePathName, null, null, FormGenericTableLayout.eFormGenericTableToken.eReqDetails);
             nCount = 0;
@@ -505,8 +531,8 @@ namespace ReqDBBrowser
                     aastrCells.Add(rowCells);
                     arpxReqTracesTo = rpxReq.GetRequirementTracesTo(20, ref eAbortReason, out nTraceCountTo, null);
                     arpxReqTracesFrom = rpxReq.GetRequirementTracesFrom(20, ref eAbortReason, out nTraceCountFrom, null);
-                    reqTN = new ReqTraceGrid.ReqTraceNode(rpxReq, 0, true, arpxReqTracesFrom, arpxReqTracesTo,
-                        nTraceCountFrom, nTraceCountTo, eAbortReason);
+                    reqTN = new ReqTraceNode(rpxReq, 0, true, arpxReqTracesFrom, arpxReqTracesTo,
+                        nTraceCountFrom, nTraceCountTo, eAbortReason, 0, 0);
 
                     reqTN.GetTraceFromString(out listTrace);
                     arrStringTrace = listTrace.ToArray();
@@ -548,15 +574,73 @@ namespace ReqDBBrowser
         private void FindRequirement(ArrayList arrKeys, string strTreePathName)
         {
             FormFind formFind = new FormFind();
-            if (formFind.ShowDialog () == DialogResult.OK)
+            if (formFind.ShowDialog() == DialogResult.OK)
             {
-                ReqProProject.SearchResult [][] searchResult;
+                ReqProProject.SearchResult[][] searchResult;
+                int[] anKeysFound;
 
                 reqDBBrowser.FindRequirements(arrKeys, formFind.SearchExpr,
                     formFind.UseRegEx, formFind.SearchTag, formFind.SearchName, formFind.SearchText, true,
-                    out searchResult);
+                    out searchResult, out anKeysFound);
+                PrepareSearchResultGrid();
+                PopulateSearchResultGrid(searchResult, anKeysFound);
             }
+        }
 
+        private void PrepareSearchResultGrid()
+        {
+            if (dgvSearchResult == null)
+            {
+                dgvSearchResult = new ReqSearchUIDataGridView(new string [] { "Tag", "Text" , "Name" }, 5,
+                    tabPageTable.Size.Width, this as ReqSearchUIDataGridView.ISearchResultViewGridCb);
+                tabPageSearchResults.Controls.Add(dgvSearchResult);
+                tabDetails.TabPages.Add(tabPageSearchResults);
+            }
+            else
+                dgvSearchResult.Init();
+            
+            tabDetails.SelectedTab = tabPageSearchResults;
+        }
+
+        private void PopulateSearchResultGrid(ReqProProject.SearchResult[][] searchResult, int[] anKeys)
+        {
+            for (int i = 0; i < searchResult.GetLength(0); i++)
+                dgvSearchResult.AddRow(searchResult[i], (anKeys == null) ? 0 : anKeys[i]);
+        }
+
+        private void FindRequirement(string strSearchString)
+        {
+            ReqProProject.SearchResult[] searchResult;
+            int[] anKeysFound;
+
+            this.treeViewRq.FindRequirements(strSearchString, out searchResult, out anKeysFound);
+            PrepareQuickSearchResultGrid();
+            PopulateQuickSearchResultGrid(searchResult, anKeysFound);
+        }
+
+        private void PrepareQuickSearchResultGrid()
+        {
+            if (dgvQuickSearchResult == null)
+            {
+                dgvQuickSearchResult = new ReqSearchUIDataGridView(new string[] { "Tag: Text" }, 1, 
+                    tabPageTable.Size.Width, this as ReqSearchUIDataGridView.ISearchResultViewGridCb);
+                tabPageQuickSearchResults.Controls.Add(dgvQuickSearchResult);
+                tabDetails.TabPages.Add(tabPageQuickSearchResults);
+            }
+            else
+                dgvQuickSearchResult.Init();
+
+            tabDetails.SelectedTab = tabPageQuickSearchResults;
+        }
+
+        private void PopulateQuickSearchResultGrid(ReqProProject.SearchResult[] searchResult, int[] anKeys)
+        {
+            ReqProProject.SearchResult[] aSearchResult = new ReqProProject.SearchResult[1];
+            for (int i = 0; i < searchResult.GetLength(0); i++)
+            {
+                aSearchResult[0] = searchResult[i];
+                dgvQuickSearchResult.AddRow(aSearchResult, (anKeys == null) ? 0 : anKeys[i]);
+            }
         }
 
         private void tabPageTree_Paint(object sender, PaintEventArgs e)
@@ -669,10 +753,10 @@ namespace ReqDBBrowser
                     bDoImplicitSelect = true;
                     break;
                 case 3:
-                    ShowRequirementsLog(arrReqKeys, strTreePathName);
+                    ShowRequirementsLog(arrReqKeys, strTreePathName, true);
                     break;
                 case 4:
-                    ShowRequirements(arrReqKeys, strTreePathName);
+                    ShowRequirements(arrReqKeys, strTreePathName, true);
                     break;
                 case 6:
                     FindRequirement(arrReqKeys, strTreePathName);
@@ -691,12 +775,16 @@ namespace ReqDBBrowser
         {
             astrMnuEntry = new string[] {
                 "Show Entry in Tree",
-                "Show Selected Entries in Tree"
+                "Show Selected Entries in Tree",
+                "",
+                "View Selected Requirements",
+                "View Log of Selected"
             };
         }
 
         public void RowMenuAction(int nActKey, int [] nSelKeys, int [] nMarkedKeys, int nMenuItem, string strMenuText)
         {
+            ArrayList arrSelKeys;
             switch (nMenuItem)
             {
                 case 0:
@@ -704,6 +792,16 @@ namespace ReqDBBrowser
                     break;
                 case 1:
                     SelectTreeNodes(nSelKeys);
+                    break;
+                case 3:
+                    arrSelKeys = new ArrayList();
+                    arrSelKeys.AddRange(nSelKeys);
+                    ShowRequirements(arrSelKeys, "", false);
+                    break;
+                case 4:
+                    arrSelKeys = new ArrayList();
+                    arrSelKeys.AddRange(nSelKeys);
+                    ShowRequirementsLog(arrSelKeys, "", false);
                     break;
                 default:
                     SelectDiag(nActKey, nSelKeys, nMarkedKeys, strMenuText);
@@ -792,5 +890,87 @@ namespace ReqDBBrowser
 
         }
         #endregion
+
+        #region ISearchResCb Members
+
+        void ReqSearchUIDataGridView.ISearchResultViewGridCb.GetRowCtxMenu
+            (out string[] astrMnuEntry)
+        {
+            astrMnuEntry = new string[] {
+                "Show Entry in Tree",
+                "Show Selected Entries in Tree",
+                "",
+                "View Selected Requirements",
+                "View Log of Selected"
+            };
+        }
+
+        void ReqSearchUIDataGridView.ISearchResultViewGridCb.RowMenuAction
+            (int nActKey, int[] nSelKeys, int[] nMarkedKeys, int nMenuItem, string strMenuText)
+        {
+            ArrayList arrSelKeys;
+
+            switch (nMenuItem)
+            {
+                case 0:
+                    SelectTreeNode(nActKey);
+                    break;
+                case 1:
+                    SelectTreeNodes(nSelKeys);
+                    break;
+                case 3:
+                    arrSelKeys = new ArrayList();
+                    arrSelKeys.AddRange(nSelKeys);
+                    ShowRequirements(arrSelKeys, "", false);
+                    break;
+                case 4:
+                    arrSelKeys = new ArrayList();
+                    arrSelKeys.AddRange(nSelKeys);
+                    ShowRequirementsLog(arrSelKeys, "", false);
+                    break;
+                default:
+                    SelectDiag(nActKey, nSelKeys, nMarkedKeys, strMenuText);
+                    break;
+            }
+        }
+        #endregion
+
+        private void btQuickSearch_Click(object sender, EventArgs e)
+        {
+            QuickSearch();
+        }
+
+        private void tbQuickSearch_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (e.KeyChar == (char) Keys.Enter)
+                QuickSearch();
+        }
+
+        private void QuickSearch()
+        {
+            string strQuickSearch;
+            strQuickSearch = tbQuickSearch.Text;
+            if (strQuickSearch.Length > 0)
+                FindRequirement(strQuickSearch);
+        }
+
+        private void tabPageGraph_Enter(object sender, EventArgs e)
+        {
+            System.Diagnostics.Debug.WriteLine("tabPageGraph gets Fokus (and Hooks MOUSEWHEEL)");
+            webBrowserReqTraceGraph.HookOn();
+        }
+
+        private void tabPageGraph_Leave(object sender, EventArgs e)
+        {
+            System.Diagnostics.Debug.WriteLine("tabPageGraph looses Fokus (and UnHooks MOUSEWHEEL)");
+            webBrowserReqTraceGraph.HookOff();
+        }
+
+        private void FormMain_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            System.Diagnostics.Debug.WriteLine("FormMain closing (and UnHooks MOUSEWHEEL)");
+            webBrowserReqTraceGraph.HookOff();
+        }
+
     }
 }

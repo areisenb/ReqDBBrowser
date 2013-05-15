@@ -2,8 +2,14 @@
 Microsoft Visual Studio Solution File, Format Version 9.00
 # Visual Studio 2005
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReqDBBrowser", "ReqDBBrowser\ReqDBBrowser.csproj", "{F1897B4B-9FDC-4E09-84FD-DC9CB9B07837}"
+	ProjectSection(ProjectDependencies) = postProject
+		{3046312C-8E07-4587-8113-749E77BAB7C8} = {3046312C-8E07-4587-8113-749E77BAB7C8}
+	EndProjectSection
 EndProject
 Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "reqDBBrowser_Setup", "reqDBBrowser_Setup\reqDBBrowser_Setup.vdproj", "{5393260B-6041-4BB0-9543-5D648FBA8458}"
+	ProjectSection(ProjectDependencies) = postProject
+		{3046312C-8E07-4587-8113-749E77BAB7C8} = {3046312C-8E07-4587-8113-749E77BAB7C8}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataGridViewExt", "DataGridViewExt\DataGridViewExt.csproj", "{3046312C-8E07-4587-8113-749E77BAB7C8}"
 EndProject

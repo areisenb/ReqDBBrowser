@@ -27,7 +27,7 @@
     <MapFileExtensions>true</MapFileExtensions>
     <InstallUrl>\\frequentis.frq\vie\data\SSG\public_rd\Tools\ReqDBBrowser\</InstallUrl>
     <WebPage>publish.htm</WebPage>
-    <ApplicationVersion>0.0.0.%2a</ApplicationVersion>
+    <ApplicationVersion>0.1.0.0</ApplicationVersion>
     <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -190,10 +190,14 @@
     </Compile>
     <Compile Include="ReqProProject.cs" />
     <Compile Include="ReqProRequirementPrx.cs" />
-    <Compile Include="ReqSearchResUIDataGridView.cs">
+    <Compile Include="ReqSearchUIDataGridView.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="ReqTraceDotNode.cs" />
+    <Compile Include="ReqTraceGraphDot.cs" />
     <Compile Include="ReqTraceGrid.cs" />
+    <Compile Include="ReqTraceNode.cs" />
+    <Compile Include="ReqTraceUIRendererNode.cs" />
     <Compile Include="ReqTraceUI.cs" />
     <Compile Include="ReqTraceUIDataGridView.cs">
       <SubType>Component</SubType>
@@ -209,6 +213,9 @@
     <Compile Include="TreeViewReq.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="ZoomWebBrowser.cs">
+      <SubType>Component</SubType>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <BaseApplicationManifest Include="Properties\app.manifest" />
@@ -220,6 +227,14 @@
       <Guid>{A4C93374-B3C3-4EEF-8599-0CE6FFD01762}</Guid>
       <VersionMajor>1</VersionMajor>
       <VersionMinor>11</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>tlbimp</WrapperTool>
+      <Isolated>False</Isolated>
+    </COMReference>
+    <COMReference Include="SHDocVw">
+      <Guid>{EAB22AC0-30C1-11CF-A7EB-0000C05BAE0B}</Guid>
+      <VersionMajor>1</VersionMajor>
+      <VersionMinor>1</VersionMinor>
       <Lcid>0</Lcid>
       <WrapperTool>tlbimp</WrapperTool>
       <Isolated>False</Isolated>

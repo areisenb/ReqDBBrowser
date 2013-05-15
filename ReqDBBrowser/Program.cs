@@ -14,7 +14,38 @@ namespace ReqDBBrowser
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new FormMain());
+#if DEBUG
+                Application.Run(new FormMain());
+#else
+            try
+            {
+                Application.Run(new FormMain());
+            }
+            catch (ReqProProject.ReqProException e)
+            {
+                string strMBCaption = "Error";
+
+                switch (e.Severity)
+                {
+                    case ReqProProject.ReqProException.ESeverity.eFatal:
+                        strMBCaption = "Fatal Error";
+                        break;
+                    case ReqProProject.ReqProException.ESeverity.eError:
+                        strMBCaption = "Error";
+                        break;
+                    case ReqProProject.ReqProException.ESeverity.eWarning:
+                        strMBCaption = "Warning";
+                        break;
+                }
+                System.Windows.Forms.MessageBox.Show("Please verify ReqPro Installation\n" + e.Message, 
+                    strMBCaption, MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+
+            catch (Exception e)
+            {
+                System.Windows.Forms.MessageBox.Show(e.Message + "\n\n" + e.StackTrace, "Exception", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+#endif 
         }
     }
 }

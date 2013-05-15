@@ -15,32 +15,62 @@
     {
         "Entry"
         {
-        "MsmKey" = "8:_1B4BD40812A5E4ACEDFD385D783EDC28"
-        "OwnerKey" = "8:_E7995C6242E94111AF1CB0D02429262D"
+        "MsmKey" = "8:_047E35A2D3DE190DC9C52F0CC7DDB781"
+        "OwnerKey" = "8:_A2E6326A818F499D9BBC1452E114892D"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_E7995C6242E94111AF1CB0D02429262D"
+        "MsmKey" = "8:_11C167CD45B115633A47F6B5351825EF"
+        "OwnerKey" = "8:_FF4C06728362864C42A2ECBC0CE4B453"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_A2E6326A818F499D9BBC1452E114892D"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_F1C9530B0EA5823FD877D1202F885736"
-        "OwnerKey" = "8:_1B4BD40812A5E4ACEDFD385D783EDC28"
+        "MsmKey" = "8:_F6A5B0A4B0F8F074443CF320C338BE8F"
+        "OwnerKey" = "8:_047E35A2D3DE190DC9C52F0CC7DDB781"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_FE7F093F433682EBE56FA84C9700148D"
+        "OwnerKey" = "8:_A2E6326A818F499D9BBC1452E114892D"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_FF4C06728362864C42A2ECBC0CE4B453"
+        "OwnerKey" = "8:_A2E6326A818F499D9BBC1452E114892D"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_1B4BD40812A5E4ACEDFD385D783EDC28"
+        "OwnerKey" = "8:_A2E6326A818F499D9BBC1452E114892D"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_E7995C6242E94111AF1CB0D02429262D"
+        "OwnerKey" = "8:_FF4C06728362864C42A2ECBC0CE4B453"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_047E35A2D3DE190DC9C52F0CC7DDB781"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_FE7F093F433682EBE56FA84C9700148D"
         "MsmSig" = "8:_UNDEFINED"
         }
     }
@@ -61,6 +91,22 @@
         "PrivateKeyFile" = "8:"
         "TimeStampServer" = "8:"
         "InstallerBootstrapper" = "3:2"
+            "BootstrapperCfg:{63ACBE69-63AA-4F98-B2B6-99F9E24495F2}"
+            {
+            "Enabled" = "11:TRUE"
+            "PromptEnabled" = "11:TRUE"
+            "PrerequisitesLocation" = "2:1"
+            "Url" = "8:"
+            "ComponentsUrl" = "8:"
+                "Items"
+                {
+                    "{EDC2488A-8267-493A-A98E-7D9C3B36CDF3}:Microsoft.Net.Framework.2.0"
+                    {
+                    "Name" = "8:Microsoft .NET Framework 2.0"
+                    "ProductCode" = "8:Microsoft.Net.Framework.2.0"
+                    }
+                }
+            }
         }
         "Release"
         {
@@ -77,6 +123,17 @@
         "PrivateKeyFile" = "8:"
         "TimeStampServer" = "8:"
         "InstallerBootstrapper" = "3:2"
+            "BootstrapperCfg:{63ACBE69-63AA-4F98-B2B6-99F9E24495F2}"
+            {
+            "Enabled" = "11:TRUE"
+            "PromptEnabled" = "11:TRUE"
+            "PrerequisitesLocation" = "2:1"
+            "Url" = "8:"
+            "ComponentsUrl" = "8:"
+                "Items"
+                {
+                }
+            }
         }
     }
     "Deployable"
@@ -106,14 +163,14 @@
         }
         "File"
         {
-            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_1B4BD40812A5E4ACEDFD385D783EDC28"
+            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_047E35A2D3DE190DC9C52F0CC7DDB781"
             {
             "AssemblyRegister" = "3:1"
             "AssemblyIsInGAC" = "11:FALSE"
             "AssemblyAsmDisplayName" = "8:Interop.ReqPro40, Version=1.11.0.0, Culture=neutral, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
-                    "_1B4BD40812A5E4ACEDFD385D783EDC28"
+                    "_047E35A2D3DE190DC9C52F0CC7DDB781"
                     {
                     "Name" = "8:Interop.ReqPro40.dll"
                     "Attributes" = "3:512"
@@ -137,7 +194,27 @@
             "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_F1C9530B0EA5823FD877D1202F885736"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_11C167CD45B115633A47F6B5351825EF"
+            {
+            "SourcePath" = "8:ieframe.dll"
+            "TargetName" = "8:ieframe.dll"
+            "Tag" = "8:"
+            "Folder" = "8:_7E295A8A7DBB495C9C311D870DA8D5B7"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:4"
+            "Exclude" = "11:TRUE"
+            "IsDependency" = "11:TRUE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_F6A5B0A4B0F8F074443CF320C338BE8F"
             {
             "SourcePath" = "8:ReqPro.dll"
             "TargetName" = "8:ReqPro.dll"
@@ -153,6 +230,68 @@
             "SharedLegacy" = "11:FALSE"
             "PackageAs" = "3:1"
             "Register" = "3:4"
+            "Exclude" = "11:TRUE"
+            "IsDependency" = "11:TRUE"
+            "IsolateTo" = "8:"
+            }
+            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_FE7F093F433682EBE56FA84C9700148D"
+            {
+            "AssemblyRegister" = "3:1"
+            "AssemblyIsInGAC" = "11:FALSE"
+            "AssemblyAsmDisplayName" = "8:DataGridViewExt, Version=1.0.0.0, Culture=neutral, processorArchitecture=x86"
+                "ScatterAssemblies"
+                {
+                    "_FE7F093F433682EBE56FA84C9700148D"
+                    {
+                    "Name" = "8:DataGridViewExt.dll"
+                    "Attributes" = "3:512"
+                    }
+                }
+            "SourcePath" = "8:DataGridViewExt.dll"
+            "TargetName" = "8:"
+            "Tag" = "8:"
+            "Folder" = "8:_BDC0C886B30F4096AFBEF16251C26EA9"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:TRUE"
+            "IsolateTo" = "8:"
+            }
+            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_FF4C06728362864C42A2ECBC0CE4B453"
+            {
+            "AssemblyRegister" = "3:1"
+            "AssemblyIsInGAC" = "11:FALSE"
+            "AssemblyAsmDisplayName" = "8:Interop.SHDocVw, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL"
+                "ScatterAssemblies"
+                {
+                    "_FF4C06728362864C42A2ECBC0CE4B453"
+                    {
+                    "Name" = "8:Interop.SHDocVw.dll"
+                    "Attributes" = "3:512"
+                    }
+                }
+            "SourcePath" = "8:Interop.SHDocVw.dll"
+            "TargetName" = "8:"
+            "Tag" = "8:"
+            "Folder" = "8:_7E295A8A7DBB495C9C311D870DA8D5B7"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
             "Exclude" = "11:FALSE"
             "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
@@ -213,7 +352,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:reqDBBrowser_Setup"
         "ProductCode" = "8:{E4CBAB45-4ED4-4762-87C2-EA53EAD4C1CC}"
-        "PackageCode" = "8:{300A825F-5BEA-4854-837E-CA7E3DFAFFB8}"
+        "PackageCode" = "8:{8FBB30E3-46DA-4E4D-868D-3509193F39A4}"
         "UpgradeCode" = "8:{9B7C1EED-DBC3-4E5A-A208-2D3F04B1DFB2}"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:FALSE"
@@ -731,12 +870,12 @@
         }
         "ProjectOutput"
         {
-            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_E7995C6242E94111AF1CB0D02429262D"
+            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_A2E6326A818F499D9BBC1452E114892D"
             {
             "SourcePath" = "8:..\\ReqDBBrowser\\obj\\Debug\\ReqDBBrowser.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
-            "Folder" = "8:_BDC0C886B30F4096AFBEF16251C26EA9"
+            "Folder" = "8:_7E295A8A7DBB495C9C311D870DA8D5B7"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"

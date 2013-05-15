@@ -15,7 +15,7 @@ namespace ReqDBBrowser
         static string strHomePrjPrefix;
         static ReqPro40.Requirements rpxReqColl = null;
 
-        static Dictionary<int, ReqPro40.Requirement> dictReqCache;
+        static Dictionary<int, ReqPro40.Requirement___v6> dictReqCache;
         private const int nReqCacheSize = 2000;
 
         public enum eTraceAbortReason
@@ -39,9 +39,9 @@ namespace ReqDBBrowser
             public string strDesc;
         }
 
-        ReqPro40.Requirement rpxReq;
+        ReqPro40.Requirement___v6 rpxReq;
         int nKey;
-        ReqPro40.Project rpxProject;
+        ReqPro40.Project___v7 rpxProject;
 
         static ReqProRequirementPrx()
         {
@@ -50,7 +50,7 @@ namespace ReqDBBrowser
 
         public static void InitCache()
         {
-            dictReqCache = new Dictionary<int,Requirement> ();
+            dictReqCache = new Dictionary<int, Requirement___v6>();
         }
 
         private ReqProRequirementPrx()
@@ -69,12 +69,12 @@ namespace ReqDBBrowser
             Init(strTag, strName, strText);
         }
 
-        public ReqProRequirementPrx(ReqPro40.Requirement rpxReq)
+        public ReqProRequirementPrx(ReqPro40.Requirement___v6 rpxReq)
         {
             Init(rpxReq);
         }
 
-        public ReqProRequirementPrx(ReqPro40.Project rpxProject, int nKey)
+        public ReqProRequirementPrx(ReqPro40.Project___v7 rpxProject, int nKey)
         {
             if (rpxProject == null)
             {
@@ -86,12 +86,12 @@ namespace ReqDBBrowser
             }
             else
             {
-                ReqPro40.Requirement rpxReq = null;
+                ReqPro40.Requirement___v6 rpxReq = null;
                 Tracer tracer = new Tracer("Req (Key: " + nKey + ")");
                 if (rpxReqColl != null)
                     if (rpxProject.Prefix == strHomePrjPrefix)
                         /* somehow strange - Requirement discovered - but not accessible if it does not belong to the home project */
-                        rpxReq = rpxReqColl[nKey, ReqPro40.enumRequirementLookups.eReqLookup_Key];
+                        rpxReq = (Requirement___v6)rpxReqColl[nKey, ReqPro40.enumRequirementLookups.eReqLookup_Key];
                 if (rpxReq != null)
                     tracer.Stop("Req " + rpxReq.get_Tag(enumTagFormat.eTagFormat_Tag) + " got via rpxColl []");
                 else
@@ -106,7 +106,7 @@ namespace ReqDBBrowser
                     }
                     catch (System.Collections.Generic.KeyNotFoundException)
                     {
-                        rpxReq = rpxProject.GetRequirement(
+                        rpxReq = (Requirement___v6)rpxProject.GetRequirement(
                              nKey, ReqPro40.enumRequirementLookups.eReqLookup_Key,
                              ReqPro40.enumRequirementsWeights.eReqWeight_Medium,
                              ReqPro40.enumRequirementFlags.eReqFlag_Empty);
@@ -114,7 +114,7 @@ namespace ReqDBBrowser
 
                         if (dictReqCache.Count > nReqCacheSize)
                         {
-                            foreach (KeyValuePair<int, ReqPro40.Requirement> kvp in dictReqCache)
+                            foreach (KeyValuePair<int, ReqPro40.Requirement___v6> kvp in dictReqCache)
                             {
                                 dictReqCache.Remove(kvp.Key);
                                 break;
@@ -158,7 +158,7 @@ namespace ReqDBBrowser
             nKey = -1;
         }
 
-        public void Init(ReqPro40.Requirement rpxReq)
+        public void Init(ReqPro40.Requirement___v6 rpxReq)
         {
             if (rpxReq == null)
                 Init("", "unknown", "unknown");
@@ -204,12 +204,11 @@ namespace ReqDBBrowser
         public ReqProRequirementPrx[] GetRequirementTraces
             (ReqPro40.Relationships rpxRelations, int nMaxTraceCount, out int nTraceCount, ReqProRequirementPrx reqReqPrxTracesPrecedor)
         {
-            bool bDoNotRead;
             ReqProRequirementPrx[] aReqPrx;
 
             int nCount = rpxRelations.Count;
             nTraceCount = nCount;
-            if (nCount > nMaxTraceCount)
+            if ((nMaxTraceCount != -1) && (nCount > nMaxTraceCount))
             {
                 if (reqReqPrxTracesPrecedor == null)
                     aReqPrx = new ReqProRequirementPrx[0];
@@ -225,40 +224,49 @@ namespace ReqDBBrowser
                 rpxRelations.MoveFirst();
                 for (int i = 0; i < nCount; i++)
                 {
-                    try
-                    {
-                        if ((rpxRelations.ItemCurrent.Permissions == enumPermissions.ePerm_None) ||
-                            (rpxRelations.ItemCurrent.Permissions == enumPermissions.ePermission_None))
-                            bDoNotRead = true;
-                        else
-                            bDoNotRead = false;
-
-                        if (rpxRelations.Direction == enumRelationshipDirections.eRelDirection_To)
-                        {
-                            if (bDoNotRead)
-                                aReqPrx[i] = new ReqProRequirementPrx("Key " + rpxRelations.ItemCurrent.DestinationKey, "no permission", "no permission");
-                            else
-                                aReqPrx[i] = new ReqProRequirementPrx
-                                    (rpxRelations.ItemCurrent.DestinationProject, rpxRelations.ItemCurrent.DestinationKey);
-                        }
-                        else
-                        {
-                            if (bDoNotRead)
-                                aReqPrx[i] = new ReqProRequirementPrx("Key " + rpxRelations.ItemCurrent.SourceKey, "no permission", "no permission");
-                            else
-                                aReqPrx[i] = new ReqProRequirementPrx
-                                    (rpxRelations.ItemCurrent.SourceProject, rpxRelations.ItemCurrent.SourceKey);
-                        }
-                    }
-                    catch (Exception)
-                    {
-                        aReqPrx[i] = new ReqProRequirementPrx(null, -1);
-                    }
-
+                    aReqPrx[i] = GetRequirementTrace (rpxRelations.ItemCurrent, rpxRelations.Direction);
                     rpxRelations.MoveNext();
                 }
             }
             return aReqPrx;
+        }
+
+        public ReqProRequirementPrx GetRequirementTrace (ReqPro40.Relationship rpxRelation, enumRelationshipDirections dir)
+        {
+            ReqProRequirementPrx reqPrx;
+            bool bDoNotRead;
+            try
+            {
+                if ((rpxRelation.Permissions == enumPermissions.ePerm_None) ||
+                    (rpxRelation.Permissions == enumPermissions.ePermission_None))
+                    bDoNotRead = true;
+                else
+                    bDoNotRead = false;
+
+                if ((dir == enumRelationshipDirections.eRelDirection_To) ||
+                    (dir == enumRelationshipDirections.eRelDirection_Child))
+                {
+                    if (bDoNotRead)
+                        reqPrx = new ReqProRequirementPrx("Key " + rpxRelation.DestinationKey, "no permission", "no permission");
+                    else
+                        reqPrx = new ReqProRequirementPrx
+                            ((ReqPro40.Project___v7)rpxRelation.DestinationProject, rpxRelation.DestinationKey);
+                }
+                else
+                {
+                    if (bDoNotRead)
+                        reqPrx = new ReqProRequirementPrx("Key " + rpxRelation.SourceKey, "no permission", "no permission");
+                    else
+                        reqPrx = new ReqProRequirementPrx
+                            ((ReqPro40.Project___v7)rpxRelation.SourceProject, rpxRelation.SourceKey);
+                }
+            }
+            catch (Exception)
+            {
+                reqPrx = new ReqProRequirementPrx(null, -1);
+            }
+
+            return reqPrx;
         }
 
         public ReqProRequirementPrx[] GetRequirementTracesFrom(int nMaxTraceCount, ref eTraceAbortReason eAbort,
@@ -270,6 +278,21 @@ namespace ReqDBBrowser
                     out nTraceCount, reqReqPrxTracesFrom);
                 if (nTraceCount != aReqPrx.GetLength(0))
                     eAbort = eAbort | eTraceAbortReason.eTooManyTracesFrom;
+                if (!rpxReq.IsRoot)
+                {
+                    ReqProRequirementPrx[] aOut;
+                    int i;
+
+                    ReqProRequirementPrx reqParent = GetRequirementTrace(
+                        rpxReq.get_Parent(enumRequirementsWeights.eReqWeight_Medium),
+                        enumRelationshipDirections.eRelDirection_Parent);
+                    aOut = new ReqProRequirementPrx[aReqPrx.GetLength(0) + 1];
+                    for (i = 0; i < aReqPrx.GetLength(0); i++)
+                        aOut[i] = aReqPrx[i];
+                    aOut[i] = reqParent;
+                    nTraceCount++;
+                }
+
                 return aReqPrx;
             }
             nTraceCount = 0;
@@ -281,10 +304,25 @@ namespace ReqDBBrowser
         {
             if (rpxReq != null)
             {
-                ReqProRequirementPrx[] aReqPrx = GetRequirementTraces(rpxReq.TracesTo, nMaxTraceCount,
-                    out nTraceCount, reqReqPrxTracesTo);
-                if (nTraceCount != aReqPrx.GetLength(0))
+                int i=0;
+                int nTraceCountTo;
+                int nTraceCountChildren;
+
+                ReqProRequirementPrx[] aReqPrxTo = GetRequirementTraces(rpxReq.TracesTo, nMaxTraceCount,
+                    out nTraceCountTo, reqReqPrxTracesTo);
+                if (nTraceCountTo != aReqPrxTo.GetLength(0))
                     eAbort = eAbort | eTraceAbortReason.eTooManyTracesTo;
+                ReqProRequirementPrx[] aReqPrxChildren = GetRequirementTraces(rpxReq.Children, -1,
+                    out nTraceCountChildren, reqReqPrxTracesTo);
+
+                ReqProRequirementPrx[] aReqPrx;
+                aReqPrx = new ReqProRequirementPrx[aReqPrxTo.GetLength(0) + aReqPrxChildren.GetLength(0)];
+                foreach (ReqProRequirementPrx reqPrx in aReqPrxTo)
+                    aReqPrx[i++] = reqPrx;
+                foreach (ReqProRequirementPrx reqPrx in aReqPrxChildren)
+                    aReqPrx[i++] = reqPrx;
+                nTraceCount = nTraceCountTo + nTraceCountChildren;
+
                 return aReqPrx;
             }
             nTraceCount = 0;
@@ -293,7 +331,7 @@ namespace ReqDBBrowser
 
         public void GetRequirementLog(out ReqProRequirementPrx.sHistEntry[] asHistory)
         {
-            ReqPro40.Revision rpxRev;
+            Revision___v1 rpxRev;
             int nCount;
 
             nCount = rpxReq.Revisions.Count;
@@ -301,7 +339,7 @@ namespace ReqDBBrowser
 
             for (int i = 0; i < nCount; i++)
             {
-                rpxRev = rpxReq.Revisions[i + 1, ReqPro40.enumRevisionLookups.eRevLookup_Index];
+                rpxRev = (Revision___v1)rpxReq.Revisions[i + 1, ReqPro40.enumRevisionLookups.eRevLookup_Index];
                 asHistory[i].strRevision = rpxRev.VersionNumber;
                 asHistory[i].date = DateTime.Parse (rpxRev.VersionDateTime);
                 asHistory[i].strUser = rpxRev.VersionUser.FullName;
@@ -381,6 +419,10 @@ namespace ReqDBBrowser
             get { return rpxReq.VersionUser.FullName; }
         }
 
+        public override string ToString()
+        {
+            return this.TagName;
+        }
 
     }
 }

@@ -17,6 +17,7 @@ namespace ReqDBBrowser
         private System.Collections.ArrayList aReqTreeNodeChilds;
         private string strText;
         private int nKey;
+        private int nKeyParent; //do not rely on proper populated member!
         private eReqTreeNodeType reqTreeNodeType;
 
         public ReqTreeNode (string strText, int nKey, eReqTreeNodeType reqTreeNodeType)
@@ -25,6 +26,7 @@ namespace ReqDBBrowser
             this.nKey = nKey;
             this.reqTreeNodeType = reqTreeNodeType;
             aReqTreeNodeChilds = new System.Collections.ArrayList ();
+            nKeyParent = -1;
         }
 
         public void Add (ref ReqTreeNode  child)
@@ -45,6 +47,12 @@ namespace ReqDBBrowser
         public int Key
         {
             get { return this.nKey; }
+        }
+
+        public int Parent
+        {
+            get { return nKeyParent; }
+            set { nKeyParent = value; }
         }
 
         public ReqTreeNode this [int idx]
